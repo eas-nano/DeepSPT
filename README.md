@@ -5,14 +5,6 @@ DeepSPT, a deep learning framework to interpret the diffusional 2D or 3D tempora
 ![image](_Images/Figure_1.png)
 ### Citing
 TBA
-### Dependencies
-  - python==3.8
-  - pandas==1.5.3
-  - matplotlib==3.7.1
-  - scipy==1.10.1
-  - hdbscan==0.8.29
-  - opencv==4.6.0
-  - scikit-learn==1.2.2
 
 ### Usage
 #### Installation
@@ -35,7 +27,7 @@ from DeepSPT import *
 
 ```
 Three test python scripts are provided:
-  - `Data_sim_test.py` - test data generation.
+  - `simulate_diffusion.py` - Data generation of 2D or 3D diffusion of heterogeneous/homogeneous motion.
   - `Segmentation_test.py` - test the clustering module on simulated data.
   - `Fingerprint_test.py` - test the fingerprint modules on the resulting data from Segmentation_test.py.
 ### Own data

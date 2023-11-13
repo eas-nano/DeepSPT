@@ -16,9 +16,9 @@ DeepSPT is most easily setup in a new conda environment with dependecies and cha
 
 ```bash
 git clone https://github.com/JKaestelHansen/DeepSPT
-cd SEMORE
+cd DeepSPT
 conda env create -f environment_droplet.yml
-conda activate SEMORE
+conda activate DeepSPT
 ```
 DeepSPT modules and additional/helpful functions are contained in the `Scripts` folder.
 DeepSPT modules are imported as:

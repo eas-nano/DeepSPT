@@ -28,11 +28,11 @@ cd SEMORE
 conda env create -f dependency.yml
 conda activate SEMORE
 ```
-SEMORE modules and additional/helpful functions are contained in the `Scripts` folder.
-SEMORE modules are imported as:
+DeepSPT modules and additional/helpful functions are contained in the `Scripts` folder.
+DeepSPT modules are imported as:
 ```python
-from Scripts.SEMORE_clustering import find_clust
-from Scripts.SEMORE_fingerprint import Morphology_fingerprint
+from DeepSPT import *
+
 ```
 Three test python scripts are provided:
   - `Data_sim_test.py` - test data generation.
@@ -49,3 +49,5 @@ For demostration regarding presented data contained in the manuscript, please re
 Jacob Kæstel-hansen, PhD fellow\
 Department of Chemistry\
 jkh@chem.ku.dk
+
+or commit an issue to this github. 

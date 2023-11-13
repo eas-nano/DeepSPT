@@ -2,7 +2,7 @@
 ## Deep learning assisted Single Particle Tracking for automated correlation between diffusion and function
 DeepSPT, a deep learning framework to interpret the diffusional 2D or 3D temporal behavior of objects in a rapid and efficient manner, agnostically. DeepSPT is a deep learning framework, encompassing three sequentially connected modules: A temporal behavior segmentation module; a diffusional fingerprinting module; and a task-specific downstream classifier module (Fig. 1a). The first two modules are universal, applicable directly to any trajectory dataset characterized by x, y, (z) and t coordinates across diverse biological systems. The final module capitalizes on experimental data to learn a task that is specific to the system under investigation.
 
-![image](_Images/Figure_1.png)
+![image](_Images/figure_1.png)
 ### Citing
 TBA
 

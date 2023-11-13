@@ -15,9 +15,9 @@ DeepSPT's installation guide utilize conda environment setup, therefore either m
 DeepSPT is most easily setup in a new conda environment with dependecies and channels found in dependency.yml - Open Terminal / Commando promt at whished location of SEMORE and run the bash commands below, which creates the environemnt, downloades and installs packages, in less than 5 minutes. Run time is expected below 1 second per track.
 
 ```bash
-git clone https://github.com/hatzakislab/SEMORE
+git clone https://github.com/JKaestelHansen/DeepSPT
 cd SEMORE
-conda env create -f dependency.yml
+conda env create -f environment_droplet.yml
 conda activate SEMORE
 ```
 DeepSPT modules and additional/helpful functions are contained in the `Scripts` folder.

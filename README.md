@@ -12,7 +12,7 @@ DeepSPT's installation guide utilize conda environment setup, therefore either m
  - Anaconda install guide: [here](https://www.anaconda.com/download)
  - Mini conda install guide: [here](https://docs.conda.io/en/latest/miniconda.html)
 
-DeepSPT is most easily setup in a new conda environment with dependecies and channels found in dependency.yml - Open Terminal / Commando prompt at wished location of DeepSPT and run the bash commands below, which creates the environemnt, downloades and installs packages, in less than 5 minutes. Run time is expected below 1 second per track.
+DeepSPT is most easily setup in a new conda environment with dependecies and channels found in dependency.yml - Open Terminal / Commando prompt at wished location of DeepSPT and run the bash commands below, which creates the environemnt, downloades and installs packages, in less than 5 minutes.
 
 ```bash
 git clone https://github.com/JKaestelHansen/DeepSPT
@@ -30,14 +30,16 @@ from DeepSPT import *
 ```
 Three test python scripts are provided:
   - `simulate_diffusion.py` - Data generation of 2D or 3D diffusion of heterogeneous/homogeneous motion.
-  - `Segmentation_test.py` - test the clustering module on simulated data.
-  - `Fingerprint_test.py` - test the fingerprint modules on the resulting data from Segmentation_test.py.
-### Own data
-`SEMORE_clustering.find_clust` accepts 2-D localizations containing a temporal element [x,y,t] while 
-`SEMORE_fingerprint.Morphology_fingerprint` accepts localizations [x,y] both static and temporal resolved. The output of the fingerprintg can then freely be used for further analysis.
+  - `usage_example.py` - test the clustering module on simulated data.
+  - `usage_example2.py` - 
 
 ### For demostration
-For demostration regarding presented data contained in the manuscript, please refer to the `_For_puplicaiton` folder where you will find the required information and scripts.
+For demostration regarding presented data contained in the manuscript, please refer to the `_For_puplicaiton` folder where you will find the required information and scripts. To run on the same data download the data as outlined below.
+
+### For demostration
+DeepSPT accepts csv files or numpy arrays of shape (number of tracks, x,y,(z)).
+Simulated data: simulate_diffusion.py, usage_example.py, and usage_example2.py contains functions to simulate trajectories.
+To access data of the publication "Deep learning assisted Single Particle Tracking for automated correlation between diffusion and function" please download from: TBA
 
 ### Contact
 

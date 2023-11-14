@@ -36,7 +36,7 @@ Three test python scripts are provided:
 ### For demostration
 For demostration regarding presented data contained in the manuscript, please refer to the `_For_puplicaiton` folder where you will find the required information and scripts. To run on the same data download the data as outlined below.
 
-### For demostration
+### Data
   - DeepSPT accepts csv files or numpy arrays of shape (number of tracks, x,y,(z)).
   - Simulated data: simulate_diffusion.py, usage_example.py, and usage_example2.py contains functions to simulate trajectories.
   - To access data of the publication "Deep learning assisted Single Particle Tracking for automated correlation between diffusion and function" please download from: TBA

@@ -30,15 +30,15 @@ from DeepSPT import *
 ```
 Three test python scripts are provided:
   - `simulate_diffusion.py` - Data generation of 2D or 3D diffusion of heterogeneous/homogeneous motion.
-  - `usage_example.py` - test the clustering module on simulated data.
-  - `usage_example2.py` - 
+  - `usage_example.py` - usage example for the three DeepSPT modules: Temporal segmentation, diffusional fingerprinting and task-specific classifier module on simulated data.
+  - `usage_example2.py` - Work in progress WIP: Usage example for the three DeepSPT modules: Temporal segmentation, diffusional fingerprinting and task-specific classifier module for time-resolved classification on simulated data.
 
 ### For demostration
 For demostration regarding presented data contained in the manuscript, please refer to the `_For_puplicaiton` folder where you will find the required information and scripts. To run on the same data download the data as outlined below.
 
 ### Data
   - Your own: DeepSPT accepts csv files or numpy arrays of shape (number of tracks, x,y,(z)).
-  - Simulated data: simulate_diffusion.py, usage_example.py, and usage_example2.py contains functions to simulate trajectories.
+  - Simulated data: simulate_diffusion.py, usage_example.py, and usage_example2.py (WIP) contains functions to simulate trajectories.
   - To access data of the publication "Deep learning assisted Single Particle Tracking for automated correlation between diffusion and function" please download from: TBA
 
 ### Contact

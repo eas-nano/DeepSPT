@@ -19,6 +19,8 @@ git clone https://github.com/JKaestelHansen/DeepSPT
 cd DeepSPT
 conda env create -f environment_droplet.yml
 conda activate DeepSPT
+pip install probfit==1.2.0
+pip install iminuit==2.11.0
 ```
 DeepSPT modules and additional/helpful functions are contained in the `deepspt_src` folder.
 DeepSPT modules are imported as:

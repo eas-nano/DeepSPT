@@ -191,7 +191,7 @@ selected_features = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,17,18,
                             19,20,21,23,24,25,27,28,29,30,31,
                             32,33,34,35,36,37,38,39,40,41,42])
 
-results2 = Parallel(n_jobs=100)(
+results2 = Parallel(n_jobs=2)(
         delayed(make_tracks_into_FP_timeseries)(
             track, pred_track, window_size=window_size, selected_features=selected_features,
             fp_datapath=fp_datapath, hmm_filename=hmm_filename, dim=dim, dt=dt)

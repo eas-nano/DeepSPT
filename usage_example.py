@@ -8,6 +8,13 @@ from global_config import globals
 import warnings
 warnings.filterwarnings("ignore")
 
+"""
+Simulate diffusion of two classes
+Run temporal segmentation module of DeepSPT on simulated data
+Create fingerprints of simulated data
+Predict the two classes based on their diffusional features
+"""
+
 # get consistent result
 seed = globals._parse({})
 
@@ -145,8 +152,8 @@ ensemble_score, ensemble_pred = run_temporalsegmentation(
                                 y_padtoken=y_padtoken,
                                 batch_size=batch_size,
                                 rerun_segmentaion=rerun_segmentaion,
-                                savename_score='ensemble_score.pkl',
-                                savename_pred='ensemble_pred.pkl',
+                                savename_score=savename_score,
+                                savename_pred=savename_pred,
                                 use_temperature=use_temperature)
 
 # pretrained HMM for fingerprints

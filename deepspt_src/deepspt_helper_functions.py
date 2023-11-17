@@ -1708,12 +1708,12 @@ def plot_diffusion(track, label_list, name='',savename=''):
     fig, ax = plt.subplots()
     ax.add_collection(colored_lines)
     ax.autoscale_view()
-    if len(savename)>0:
-        plt.savefig(savename+'.pdf')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.legend(markers, diff_types, numpoints=1, bbox_to_anchor=(1.33, 1.04))
     plt.title(name)
+    if len(savename)>0:
+        plt.savefig(savename+'.pdf')
     plt.show()
 
 
@@ -4404,6 +4404,8 @@ def run_temporalsegmentation(best_models_sorted,
 
 def make_tracks_into_FP_timeseries(track, pred_track, window_size=40, selected_features=[],
                                    fp_datapath='', hmm_filename='', dim=3, dt=2,):
+    import warnings
+    warnings.filterwarnings("ignore")
     timeseries = np.ones((len(track), len(track), len(selected_features)))*-10
     for center in range(0,len(track)):
         min_value = np.max([0, center-window_size//2])

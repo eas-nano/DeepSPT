@@ -23,9 +23,9 @@ pip install probfit==1.2.0
 pip install iminuit==2.11.0
 ```
 DeepSPT modules and additional/helpful functions are contained in the `deepspt_src` folder.
-DeepSPT modules are imported as:
+When running/building scripts in the DeepSPT directory modules are imported as:
 ```python
-from DeepSPT import *
+from deepspt_src import *
 
 ```
 Three test python scripts are provided:

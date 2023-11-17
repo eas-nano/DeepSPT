@@ -14,6 +14,7 @@ from sklearn.linear_model import *
 from sklearn.ensemble import *
 from sklearn.metrics import *
 
+from joblib import Parallel, delayed
 from os.path import join
 from glob import glob 
 from tqdm import tqdm
@@ -89,6 +90,24 @@ def load_X(datapath, filename_X, identifiername='particle', timename='frame', fe
     X = np.array(X, dtype=object)
     X = add_features(X, features)
     return X
+
+
+def prep_csv_tracks_track(val, xname='x', yname='y', zname='', timename='A', identifiername='particle', center=False):
+    if zname == '':
+        X = np.vstack(val[[xname, yname]].values).astype(float)
+        T = np.vstack(val[timename].values).astype(float)
+        P = np.vstack(val[identifiername].values).astype(int)
+    else:
+        X = np.vstack(val[[xname, yname, zname]].values).astype(float)
+        T = np.vstack(val[timename].values).astype(float)
+        P = np.vstack(val[identifiername].values).astype(int)
+    if center:
+        X = [x-x[0] for x in X]
+    return X, T, P
+
+
+def read_data_csv(filepath, useful_col=['x', 'y', 'steplength', 'particle', 'frame']):
+    return pd.read_csv(filepath).sort_values(by=['particle', 'frame']).reset_index(drop=True)[useful_col]
 
 
 def ensemble_voting(r1, r2, r3):

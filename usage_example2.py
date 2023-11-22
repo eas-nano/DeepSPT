@@ -9,6 +9,38 @@ import warnings
 from joblib import Parallel, delayed
 warnings.filterwarnings("ignore")
 
+class ChangePointLSTM(nn.Module):
+    def __init__(self, input_dim, hidden_dim, 
+                 num_layers, maxlens, 
+                 bidirectional):
+        super(ChangePointLSTM, self).__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self.maxlens = maxlens
+
+        self.lstm = nn.LSTM(self.input_dim,
+                            self.hidden_dim,
+                            self.num_layers,
+                            batch_first=True,
+                            bidirectional=bidirectional)
+        self.gru = nn.GRU(self.input_dim,
+                            self.hidden_dim,
+                            self.num_layers,
+                            batch_first=True,
+                            bidirectional=bidirectional)
+                                    
+        self.d = 1 if not self.lstm.bidirectional else 2 
+        self.fc = nn.Linear(self.hidden_dim, 2)  # Predicting a single value (the changepoint)
+
+    def forward(self, x):
+        #out, (hidden, _) = self.lstm(x)
+        out, hidden = self.gru(x) # gru 
+        if self.d==2:
+            out = out[:,:,:self.hidden_dim] + out[:,:,self.hidden_dim:]
+        out = self.fc(out)  # Use the final output
+        return out
+    
 # get consistent result
 seed = globals._parse({})
 
@@ -98,6 +130,7 @@ else:
 print(np.mean(Drandomranges_pairs))
 glued_tracks = []
 glued_labels = []
+frame_change = []
 for i in range(len(changing_diffusion_list_all[:n_changing_traces])):
     first = changing_diffusion_list_all[i]
     second = changing_diffusion_list_all[i+n_changing_traces]
@@ -106,6 +139,7 @@ for i in range(len(changing_diffusion_list_all[:n_changing_traces])):
                     np.sqrt(dim*dt*np.mean(Drandomranges_pairs)))
     second[:,1] += np.random.normal(first[-1,1],
                     np.sqrt(dim*dt*np.mean(Drandomranges_pairs)))
+    frame_change.append(len(first))
     glued_tracks.append(
         np.concatenate((first, 
                         second)))
@@ -118,6 +152,10 @@ plt.plot(glued_tracks[i][:,0], glued_tracks[i][:,1],
          c='k')
 plt.scatter(glued_tracks[i][:,0], glued_tracks[i][:,1],
             c=glued_labels[i], zorder=10, s=10)
+
+# %%
+
+frame_change
 
 # %%
 
@@ -160,8 +198,8 @@ batch_size = 32 # batch size for evaluation
 use_temperature = True # use temperature scaling for softmax
 
 # save paths
-savename_score = 'deepspt_results/analytics/testdeepspt_ensemble_score.pkl'
-savename_pred = 'deepspt_results/analytics/testdeepspt_ensemble_pred.pkl'
+savename_score = 'deepspt_results/analytics/test2deepspt_ensemble_score.pkl'
+savename_pred = 'deepspt_results/analytics/test2deepspt_ensemble_pred.pkl'
 rerun_segmentaion = True # Set false to load previous results
 
 print(len(X_to_eval))
@@ -178,8 +216,8 @@ ensemble_score, ensemble_pred = run_temporalsegmentation(
                                 y_padtoken=y_padtoken,
                                 batch_size=batch_size,
                                 rerun_segmentaion=rerun_segmentaion,
-                                savename_score='ensemble_score.pkl',
-                                savename_pred='ensemble_pred.pkl',
+                                savename_score=savename_score,
+                                savename_pred=savename_pred,
                                 use_temperature=use_temperature)
 
 # pretrained HMM for fingerprints
@@ -191,6 +229,7 @@ selected_features = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,17,18,
                             19,20,21,23,24,25,27,28,29,30,31,
                             32,33,34,35,36,37,38,39,40,41,42])
 
+# run fingerprint module of temporally DeepSPT
 results2 = Parallel(n_jobs=2)(
         delayed(make_tracks_into_FP_timeseries)(
             track, pred_track, window_size=window_size, selected_features=selected_features,
@@ -200,3 +239,263 @@ timeseries_clean = np.array([r[0] for r in results2])
 
 # %%
 
+# cross-validation
+y_groups = np.array(range(len(timeseries_clean))) # no specific groups but can be changed here
+gss = GroupKFold(n_splits=5)
+gss2 = GroupKFold(n_splits=2)
+
+# split train and test from data_padded into index
+train_idx_final = []
+test_idx_final = []
+val_idx_final = []
+direct_idx = np.array(range(len(timeseries_clean)))
+for train_index, test_all_index in gss.split(direct_idx, groups=y_groups):
+    for test_index, val_index in gss2.split(direct_idx[test_all_index], groups=y_groups[test_all_index]):
+        train_idx_final.append(direct_idx[train_index])
+        test_idx_final.append(direct_idx[test_all_index][test_index])
+        val_idx_final.append(direct_idx[test_all_index][val_index])
+
+# prep data
+X_padtoken = -1 # pre-pad tracks to get them equal length, -1 so that it is not confused with 0
+length_track = np.array([len(t) for t in timeseries_clean])
+maxlens = np.max(length_track)
+print('maxlens', maxlens)
+data = [torch.from_numpy(t).float() for t in timeseries_clean]
+data_padded = [nn.ConstantPad1d((maxlens-len(x), 0), X_padtoken)(x.T).float().T for x in data]
+data_padded = torch.stack(data_padded)
+print(data_padded.shape, len(data_padded))
+
+# Train the model
+torch.manual_seed(0)
+num_epochs = 75 # need to be high (>50) for convergence
+Fold = 0 # placeholder for cross-validation fold
+
+# Training loop (takes a while if not on gpu)
+test_outputs_list = []
+test_targets_list = []
+test_probs_list = []
+train_idx_check = []
+test_idx_check = []
+val_idx_check = []
+X_test_idx_all = []
+import datetime
+starttime = datetime.datetime.now()
+for i in range(len(train_idx_final)):
+
+    model = ChangePointLSTM(input_dim=40, 
+                            hidden_dim=10, 
+                            num_layers=5, 
+                            maxlens=maxlens,
+                            bidirectional=True)
+    
+    X_train_idx = train_idx_final[i]
+    X_test_idx = test_idx_final[i]
+    X_val_idx = val_idx_final[i]
+
+    print()
+    print('Fold', Fold)
+    Fold += 1
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    criterion = nn.CrossEntropyLoss()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+
+    train_idx_check.append(X_train_idx)
+    test_idx_check.append(X_test_idx)
+    val_idx_check.append(X_val_idx)
+
+    # split train and test from data_padded into index
+    X_train = data_padded[X_train_idx]
+    X_val = data_padded[X_val_idx]
+    X_test = data_padded[X_test_idx]
+
+    train_length_track = length_track[X_train_idx]
+    val_length_track = length_track[X_val_idx]
+    test_length_track = length_track[X_test_idx]
+
+    temporal_y = []
+    for i,f in enumerate(frame_change):
+        offset = maxlens-length_track[i]
+        f = int(f+offset)
+        ty = np.zeros(maxlens)
+        ty[:f] = 0
+        ty[f:] = 1
+        temporal_y.append(ty)
+    temporal_y = np.array(temporal_y)
+
+    y_train = torch.from_numpy(temporal_y)[X_train_idx]
+    y_val = torch.from_numpy(temporal_y)[X_val_idx]
+    y_test = torch.from_numpy(temporal_y)[X_test_idx]
+
+    from torch.utils.data import TensorDataset, DataLoader
+    TrainDataset = TensorDataset(X_train, y_train)
+    ValDataset = TensorDataset(X_val, y_val)
+    TestDataset = TensorDataset(X_test, y_test)
+
+    # Assume we have some DataLoader objects for the training and validation data
+    val_batch_size = 32
+    train_loader = DataLoader(TrainDataset, batch_size=16, shuffle=True)
+    val_loader = DataLoader(ValDataset, batch_size=32, shuffle=False)
+    test_loader = DataLoader(TestDataset, batch_size=32, shuffle=False)
+
+    # Train the model
+    best_val_loss = 0
+    for epoch in range(num_epochs):
+        model.train()
+        for inputs, targets in train_loader:
+            inputs, targets = inputs.to(device), targets.to(device)
+
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            
+            loss = 0
+            for i, (o,t) in enumerate(zip(outputs, targets)):
+                tl = train_length_track[i]
+                loss += criterion(o[maxlens-tl:], t[maxlens-tl:].long())
+
+            loss.backward()
+            optimizer.step()
+
+        # Validate the model
+        model.eval()
+        with torch.no_grad():
+            total_val_loss = 0
+            total_perc_correct = []
+            total_recall = 0
+            total_samples = 0
+            changepoint_pred = []
+            changepoint_true = []
+            for inputs, targets in val_loader:
+                targets_pre = targets
+                inputs, targets = inputs.to(device), targets.to(device)
+                
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 2)
+
+                total_samples += targets.size(0)
+                for i, (p,t) in enumerate(zip(predicted, targets)):
+                    sgl, cp, v = find_segments(p[maxlens-vl:])
+                    changepoint_pred.append(cp[-2])
+
+                    sgl, cp, v = find_segments(t[maxlens-vl:])
+                    changepoint_true.append(cp[-2])
+
+                    vl = val_length_track[i]
+                    total_perc_correct.append((p[maxlens-vl:] == t[maxlens-vl:]).sum().item()/len(p[maxlens-vl:]))
+                    recall_0 = torch.mean((p[maxlens-vl:][t[maxlens-vl:]==0]==0).float())
+                    recall_0 = recall_0 if recall_0>0 else torch.tensor(0, device=device)
+                    recall_1 = torch.mean((p[maxlens-vl:][t[maxlens-vl:]==1]==1).float())
+                    recall_1 = recall_1 if recall_1>0 else torch.tensor(0, device=device)
+                    total_recall += (recall_0+recall_1)/2
+
+                outputs = outputs.view(-1, outputs.shape[-1]).float()  # shape : (batch_size*sequence_length, num_classes)
+                targets = targets.view(-1).long() 
+                val_loss = criterion(outputs, targets)
+                total_val_loss += val_loss.item()
+
+            val_attempt = total_recall/total_samples
+            if val_attempt > best_val_loss:
+                best_val_loss = val_attempt
+                best_model = model
+                best_predicted, best_targets_pre = predicted, targets_pre
+                torch.save(best_model.state_dict(), 'deepspt_results/analytics/usage_ex2_GRU_CVfold{}.pt'.format(Fold))
+                print(f'Epoch {epoch+1}/{num_epochs}, Validation Loss: {np.round(total_val_loss/len(val_loader),2)}, total_perc_correct: {np.round(np.mean(total_perc_correct),2), np.round(np.std(total_perc_correct, ddof=1),2)}, total_recall/total_samples: {val_attempt.item()}, frame error {np.mean(np.abs(np.array(changepoint_pred)-np.array(changepoint_true)))}')
+
+    for ti, (inputs, targets) in tqdm(enumerate(test_loader)):
+        targets_pre = targets
+        inputs, targets = inputs.to(device), targets.to(device)
+        
+        test_outputs = best_model(inputs)
+        _, test_predicted = torch.max(test_outputs.data, 2) 
+        for i,(tp, tt, to) in enumerate(zip(test_predicted, targets, test_outputs)):
+            tl = test_length_track[i]
+            test_outputs_list.append(tp.cpu().detach().numpy()[maxlens-tl:])
+            test_targets_list.append(tt.cpu().detach().numpy()[maxlens-tl:])
+            test_probs_list.append(to.cpu().detach().numpy()[maxlens-tl:])
+            lower, upper = int(ti*val_batch_size), int((ti+1)*val_batch_size)
+            X_test_idx_all.append(X_test_idx[lower:upper][i])
+    print(datetime.datetime.now()-starttime, len(X_test))
+    print(datetime.datetime.now(),starttime, len(X_test))
+
+acc = [np.mean(test_outputs_list[i]==test_targets_list[i]) for i in range(len(test_outputs))]
+pickle.dump(acc, open('deepspt_results/analytics/usage_ex2_testacc.pkl', 'wb'))
+pickle.dump(test_outputs_list, open('deepspt_results/analytics/usage_ex2_test_outputs.pkl', 'wb'))
+pickle.dump(test_targets_list, open('deepspt_results/analytics/usage_ex2_test_targets.pkl', 'wb'))
+pickle.dump(test_probs_list, open('deepspt_results/analytics/usage_ex2_test_probs.pkl', 'wb'))
+pickle.dump(X_test_idx_all, open('deepspt_results/analytics/usage_ex2_Xtest_idx_all.pkl', 'wb'))
+
+# %%
+
+acc = pickle.load(open('deepspt_results/analytics/usage_ex2_testacc.pkl', 'rb'))
+test_outputs_list = pickle.load(open('deepspt_results/analytics/usage_ex2_test_outputs.pkl', 'rb'))
+test_targets_list = pickle.load(open('deepspt_results/analytics/usage_ex2_test_targets.pkl', 'rb'))
+test_probs = pickle.load(open('deepspt_results/analytics/usage_ex2_test_probs.pkl', 'rb'))
+X_test_idx_all = pickle.load(open('deepspt_results/analytics/usage_ex2_Xtest_idx_all.pkl', 'rb'))
+
+test_changepoint_pred = []
+test_changepoint_true = []
+for i in range(len(test_outputs_list)):
+    sgl, cp, v = find_segments(test_outputs_list[i])
+    test_changepoint_pred.append(cp[-2])
+
+    sgl, cp, v = find_segments(test_targets_list[i])
+    test_changepoint_true.append(cp[-2])
+
+print('test_changepoint_pred', test_changepoint_pred)
+print('test_changepoint_true', test_changepoint_true)
+
+frame_error = np.abs(np.array(test_changepoint_pred)-np.array(test_changepoint_true))
+MAE_frame = np.mean(frame_error)
+MedianAE_frame = np.median(frame_error)
+print('MAE_frame', MAE_frame, 'MedianAE_frame', MedianAE_frame)
+
+plt.figure()
+plt.title('True vs predicted changepoint')
+plt.scatter(test_changepoint_true, test_changepoint_pred)
+plt.xlabel('True changepoint')
+plt.ylabel('Predicted changepoint')
+plt.show()
+
+plt.figure()
+plt.title('Absolute frame error')
+plt.hist(frame_error, bins=50, range=(0, np.max(frame_error)))
+plt.ylabel('Frequency')
+plt.xlabel('Absolute frame error')
+plt.show()
+
+plt.figure()
+plt.title('Accuracy (percentage correct per track)')
+plt.hist(acc, bins=50, range=(0, 1))
+plt.ylabel('Frequency')
+plt.xlabel('Accuracy')
+plt.show()
+
+i = np.random.randint(len(test_outputs_list))
+tidx = X_test_idx_all[i]
+
+track_to_plot = glued_tracks[tidx]
+
+fig, ax = plt.subplots(1,2, figsize=(10,5))
+acc_i = np.mean(test_outputs_list[i]==test_targets_list[i])
+print('ACC {}:'.format(i), acc_i, 'frame_error {} :'.format(i), frame_error[i])
+ax[0].set_title('Ground truth track '+str(i))
+ax[0].plot(glued_tracks[tidx][:frame_change[tidx]+1,0], 
+           glued_tracks[tidx][:frame_change[tidx]+1,1], c='green', lw=2)
+ax[0].plot(glued_tracks[tidx][frame_change[tidx]:,0], 
+           glued_tracks[tidx][frame_change[tidx]:,1], c='purple', lw=2) 
+ax[0].set_xlabel('x')
+ax[0].set_ylabel('y')
+ax[0].set_aspect('equal')
+
+ax[1].set_title('Prediction, Acc: '+str(np.round(acc_i,2)))
+ax[1].plot(glued_tracks[tidx][:test_changepoint_pred[i]+1,0], 
+           glued_tracks[tidx][:test_changepoint_pred[i]+1,1], c='green', lw=2)
+ax[1].plot(glued_tracks[tidx][test_changepoint_pred[i]:,0], 
+           glued_tracks[tidx][test_changepoint_pred[i]:,1], c='purple', lw=2) 
+ax[1].set_xlabel('x')
+ax[1].set_ylabel('y')
+ax[1].set_aspect('equal')
+
+plt.tight_layout()
+plt.show()

@@ -32,7 +32,7 @@ Three test python scripts are provided:
   - `simulate_diffusion.py` - Data generation of 2D or 3D diffusion of heterogeneous/homogeneous motion.
   - `usage_example1.py` - Usage example for loading numpy array saved as pickle or csv file.
   - `usage_example1.py` - Usage example for the three DeepSPT modules: Temporal segmentation, diffusional fingerprinting and task-specific classifier module on simulated data.
-  - `usage_example2.py` - Work in progress WIP: Usage example for the three DeepSPT modules: Temporal segmentation, diffusional fingerprinting and task-specific classifier module for time-resolved classification on simulated data.
+  - `usage_example2.py` - Usage example for the three DeepSPT modules: Temporal segmentation, diffusional fingerprinting and task-specific classifier module for time-resolved classification on simulated data.
 
 ### For demostration
 For demostration regarding presented data and analysis contained in the manuscript, please refer to the `_For_puplicaiton` folder where you will find the required information and scripts. To run on the same data download the data as outlined below.

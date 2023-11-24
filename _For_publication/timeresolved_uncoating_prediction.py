@@ -276,11 +276,11 @@ if __name__ == '__main__':
             test_outputs = best_model(inputs)
             _, test_predicted = torch.max(test_outputs.data, 2) 
             for i,(tp, tt, to) in enumerate(zip(test_predicted, targets, test_outputs)):
-                tl = test_length_track[i]
+                lower, upper = int(ti*val_batch_size), int((ti+1)*val_batch_size)
+                tl = test_length_track[lower:upper][i]
                 val_outputs.append(tp.cpu().detach().numpy()[maxlens-tl:])
                 val_targets.append(tt.cpu().detach().numpy()[maxlens-tl:])
                 val_probs.append(to.cpu().detach().numpy()[maxlens-tl:])
-                lower, upper = int(ti*val_batch_size), int((ti+1)*val_batch_size)
                 X_test_idx_all.append(X_test_idx[lower:upper][i])
         print(datetime.datetime.now()-starttime, len(X_test))
         print(datetime.datetime.now(),starttime, len(X_test))

@@ -39,19 +39,17 @@ def rollingMSD_outputter(t1, window_size=20):
     a = []
     for m in msds:
         xdata = np.array(range(len(m)))
-        try:
-            popt, pcov = curve_fit(msd_func, xdata, m, 
-                               bounds=[(0,0,0),(100,2,100)], 
-                               maxfev=1000)
-            a.append(popt[1])
-        except:
-            rollMSD(t1, window=window_size, verbose=True)
-            print(safd)
+        popt, pcov = curve_fit(msd_func, xdata, m, 
+                            bounds=[(0,0,0),(100,2,100)], 
+                            maxfev=1000)
+        a.append(popt[1])
+
     a = np.hstack(a)
     pred = np.ones(len(msds))*10
-    pred[a<0.9] = 3
+    pred[a<=0.7] = 3
     pred[(0.7<a) & (a<1.3)] = 0
-    pred[a>1.3] = 1
+    pred[a>=1.3] = 1
+    assert 10 not in pred
 
     return pred 
 
@@ -119,35 +117,37 @@ def msd_func(x, D, alpha, offset):
     return 2 * D * (x) ** alpha + offset
 
 
-datapath = '_Data/Simulated_diffusion_tracks/'
+datapath = '../_Data/Simulated_diffusion_tracks/'
 test_X_path = '2022422185_SimDiff_indeptest_dim2_ntraces20000_Drandom0.0001-0.5_dt1.0e+00_N5-600_B0.05-0.25_R5-25_subA0-0.7_superA1.3-2_Q1-16_X.pkl'
 test_y_path = '2022422185_SimDiff_indeptest_dim2_Drandom0.0001-0.5_dt1.0e+00_N5-600_B0.05-0.25_R5-25_subA0-0.7_superA1.3-2_Q1-16_timeresolved_y.pkl'
 
 tracks = np.array(pickle.load(open(datapath+test_X_path, 'rb')), dtype=object)
 testy = np.array(pickle.load(open(datapath+test_y_path, 'rb')), dtype=object)
-print(tracks.shape)
+print(tracks.shape, testy.shape)
 
 # %%
 min_len_pred = 10
 window_size = 10
 
-pred_list = []
-msd_list = []
+rerun_rollingMSD = False
+if rerun_rollingMSD:
+    pred_list = []
+    msd_list = []
 
-# t = time.time()
-# pred_list = Parallel(n_jobs=100)(delayed(rollingMSD_outputter)(t1) 
-#                 for i, t1 in enumerate(tracks))
-# print(len(pred_list))
-# print('time', time.time()-t)
+    t = time.time()
+    pred_list = Parallel(n_jobs=100)(delayed(rollingMSD_outputter)(t1) 
+                    for i, t1 in enumerate(tracks))
+    print(len(pred_list))
+    print('time', time.time()-t)
 
-acc = np.mean(np.hstack(testy)==np.hstack(pred_list))
-track_acc = [np.mean(testy[i]==pred_list[i]) for i in range(len(pred_list))]
+    acc = np.mean(np.hstack(testy)==np.hstack(pred_list))
+    track_acc = [np.mean(testy[i]==pred_list[i]) for i in range(len(pred_list))]
 
-plt.figure()
-plt.hist(track_acc)
+    plt.figure()
+    plt.hist(track_acc)
 
-results_dict = {'pred_list':pred_list, 'track_acc':track_acc, 'acc':acc}
-pickle.dump(results_dict, open('baseline_methods/rollingMSD/rollingMSD_results.pkl', 'wb'))
+    results_dict = {'pred_list':pred_list, 'track_acc':track_acc, 'acc':acc}
+    pickle.dump(results_dict, open('baseline_methods/rollingMSD/rollingMSD_results.pkl', 'wb'))
 
 # %%
 
@@ -158,7 +158,6 @@ results_dict.keys()
 pred_list = results_dict['pred_list']
 track_acc = results_dict['track_acc']
 acc = results_dict['acc']
-
 plt.figure()
 plt.hist(track_acc)
 print(acc)
@@ -230,7 +229,7 @@ from sklearn.metrics import f1_score
 f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 plt.tight_layout()
-plt.savefig('Unet_paper_figures/paper_figures/4class_rollMSD_confusion_matrix.pdf')
+#plt.savefig('/paper_figures/4class_rollMSD_confusion_matrix.pdf')
 plt.show()
 print(classification_report(flat_test_true, flat_test_pred, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred)==np.array(flat_test_true)))
@@ -263,7 +262,7 @@ from sklearn.metrics import f1_score
 f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 plt.tight_layout()
-plt.savefig('Unet_paper_figures/paper_figures/3class_rollMSD_confusion_matrix.pdf')
+#plt.savefig('/paper_figures/3class_rollMSD_confusion_matrix.pdf')
 plt.show()
 print(classification_report(flat_test_true, flat_test_pred, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred)==np.array(flat_test_true)))
@@ -296,7 +295,7 @@ from sklearn.metrics import f1_score
 f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 plt.tight_layout()
-plt.savefig('Unet_paper_figures/paper_figures/2class_rollMSD_confusion_matrix.pdf')
+#plt.savefig('/paper_figures/2class_rollMSD_confusion_matrix.pdf')
 plt.show()
 print(classification_report(flat_test_true, flat_test_pred, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred)==np.array(flat_test_true)))

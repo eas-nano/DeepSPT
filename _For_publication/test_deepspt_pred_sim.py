@@ -3,6 +3,8 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 import datetime
+import sys
+sys.path.append('../')
 from deepspt_src import *
 
 """Generate a simulated data """
@@ -52,7 +54,8 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
     max_changepoints = 4 # number of times changing diffusion traces can change
     min_parent_len = 5 # minimum length of subtrace
     total_parents_len = Nrange[1] # max len of changing diff traces
-    path = '_Data/Simulated_diffusion_tracks/'
+    
+    path = '../deepspt_results/tracks/'
     output_name = 'test_deepSPTpred_dim'+str(dim)+'_Didx_'+str(i)
     print(path+output_name)
     if not os.path.exists(path+output_name+'.pkl'):
@@ -118,7 +121,7 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
     dim = 3 if 'dim3' in datasets[0] else 2
     # find the model
     dir_name = ''
-    modelpath = 'mlruns/'
+    modelpath = '../mlruns/'
     modeldir = '36'
     use_mlflow = False
     if use_mlflow:
@@ -127,7 +130,7 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
         best_models_sorted = find_models_for(datasets, methods)
     else:
         # not sorted tho
-        path = 'mlruns/{}'.format(modeldir)
+        path = '../mlruns/{}'.format(modeldir)
         best_models_sorted = find_models_for_from_path(path)
         print(best_models_sorted)
 
@@ -137,8 +140,8 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
     y_padtoken = 10
     batch_size = 32
     
-    savename_score = 'deepspt_results/analytics/testdeepspt_ensemble_score.pkl'
-    savename_pred = 'deepspt_results/analytics/testdeepspt_ensemble_pred.pkl'
+    savename_score = '../deepspt_results/analytics/testdeepspt_ensemble_score.pkl'
+    savename_pred = '../deepspt_results/analytics/testdeepspt_ensemble_pred.pkl'
     rerun_segmentaion = True
     ensemble_score, ensemble_pred = run_temporalsegmentation(
                                  best_models_sorted, 
@@ -152,11 +155,11 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
                                  y_padtoken=y_padtoken,
                                  batch_size=batch_size,
                                  rerun_segmentaion=rerun_segmentaion,
-                                 savename_score='ensemble_score.pkl',
-                                 savename_pred='ensemble_pred.pkl')
+                                 savename_score=savename_score,
+                                 savename_pred=savename_pred)
 
 
-    fp_datapath = '_Data/Simulated_diffusion_tracks/'
+    fp_datapath = '../_Data/Simulated_diffusion_tracks/'
     hmm_filename = 'simulated2D_HMM.json'
     selected_features = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,17,18,
                                 19,20,21,23,24,25,27,28,29,30,31,
@@ -297,10 +300,10 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
     accuracy_std_all.append(np.std(accuracy, ddof=1))
     histogram_intersection_all.append(histoverlap_all[33])
 if save:
-    pickle.dump(accuracy_all, open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'wb'))
-    pickle.dump(accuracy_all_lists, open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all_lists.pkl', 'wb'))
-    pickle.dump(accuracy_std_all, open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'wb'))
-    pickle.dump(histogram_intersection_all, open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'wb'))
+    pickle.dump(accuracy_all, open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'wb'))
+    pickle.dump(accuracy_all_lists, open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all_lists.pkl', 'wb'))
+    pickle.dump(accuracy_std_all, open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'wb'))
+    pickle.dump(histogram_intersection_all, open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'wb'))
 
 # %%
 
@@ -309,9 +312,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 conditions_to_use = 'all' # 'all' or 'D' or 'alpha' or 'D+alpha'
-accuracy_all = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'rb'))
-accuracy_std_all = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'rb'))
-histogram_intersection_all = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
+accuracy_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'rb'))
+accuracy_std_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'rb'))
+histogram_intersection_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
 
 print(accuracy_all)
 print(accuracy_std_all)
@@ -331,7 +334,7 @@ for txt in range(len(histogram_intersection_all)):
                   accuracy_all[txt]+.04),
                   fontsize=14)
 
-savedir = 'deepspt_results/results_rotavirus/figures'
+savedir = '../deepspt_results/results_rotavirus/figures'
 # plt.savefig(savedir+'/simDeepSPTpred_accuracy_vs_Doverlap.pdf', bbox_inches='tight')
 plt.show()
 
@@ -347,9 +350,9 @@ colors_list = ['black', 'darkgrey', 'grey', 'dimgrey']
 shape_list = ['o', 'v', '^', 'd']
 
 for i, conditions_to_use in enumerate(['all', 'alpha', 'D', 'D+alpha']):
-    accuracy_all = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'rb'))
-    accuracy_std_all = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'rb'))
-    histogram_intersection_all = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
+    accuracy_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'rb'))
+    accuracy_std_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'rb'))
+    histogram_intersection_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
     name_to_use = conditions_to_use if conditions_to_use != 'all' else 'DeepSPT'
     if name_to_use == 'D+alpha':
         name_to_use = 'D & alpha'
@@ -377,7 +380,7 @@ for i, conditions_to_use in enumerate(['all', 'alpha', 'D', 'D+alpha']):
                         accuracy_all[txt]+.07),
                         fontsize=14)
 
-    savedir = 'deepspt_results/results_rotavirus/figures'
+    savedir = '../deepspt_results/results_rotavirus/figures'
 
 # horizontal legend
 plt.legend(bbox_to_anchor=(.44, .01, 1., .102), loc='lower left',
@@ -392,7 +395,7 @@ plt.show()
 
 print(len(changing_diffusion_list_all)//2)
 
-path = '_Data/Simulated_diffusion_tracks/'
+path = '../_Data/Simulated_diffusion_tracks/'
 output_name = 'test_deepSPTpred_dim'+str(3)+'_Didx_'+str(3)
 changing_diffusion_list_all_to_plot = pickle.load(open(path+output_name+'.pkl', 'rb'))
 
@@ -418,7 +421,7 @@ for i, t in enumerate(tracks1[::to_plot]):
 ax.set_xlim(-8,20)
 ax.set_ylim(-7,7.5)
 
-savedir = 'deepspt_results/results_rotavirus/figures'
+savedir = '../deepspt_results/results_rotavirus/figures'
 print(savedir+'/simDeepSPTpred_tracks_to_plot_{}.pdf'.format(to_plot))
 plt.savefig(savedir+'/simDeepSPTpred_tracks_to_plot_{}.pdf'.format(to_plot), bbox_inches='tight')
 plt.show()
@@ -429,10 +432,10 @@ from scipy.stats import ttest_ind
 
 # calculate welsh t-test
 c_list = ['all', 'alpha', 'D', 'D+alpha']
-acc_lists_all = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[0]+'_accuracy_all_lists.pkl', 'rb'))
-acc_lists_alpha = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[1]+'_accuracy_all_lists.pkl', 'rb'))
-acc_lists_D = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[2]+'_accuracy_all_lists.pkl', 'rb'))
-acc_lists_Dalpha = pickle.load(open('deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[3]+'_accuracy_all_lists.pkl', 'rb'))
+acc_lists_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[0]+'_accuracy_all_lists.pkl', 'rb'))
+acc_lists_alpha = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[1]+'_accuracy_all_lists.pkl', 'rb'))
+acc_lists_D = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[2]+'_accuracy_all_lists.pkl', 'rb'))
+acc_lists_Dalpha = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[3]+'_accuracy_all_lists.pkl', 'rb'))
 
 print(len(acc_lists_all), acc_lists_Dalpha[0])
 

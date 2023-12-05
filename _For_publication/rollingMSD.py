@@ -17,20 +17,6 @@ from sklearn.metrics import (roc_auc_score, roc_curve,
                              precision_recall_curve, 
                              classification_report,
                              confusion_matrix)
-from deepspt_src import (create_fingerprint_track, 
-                  add_features, 
-                  find_models_for,
-                  find_models_for_from_path,
-                  load_UnetModels,
-                  load_UnetModels_directly,
-                  make_preds,
-                  ensemble_scoring,
-                  postprocess_pred,
-                  plot_diffusion,
-                  timepoint_confidence_plot,
-                  global_transition_probs,
-                  behavior_TDP,
-                  find_segments)
 import os
 
 

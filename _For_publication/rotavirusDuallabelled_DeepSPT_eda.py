@@ -4,7 +4,6 @@ import numpy as np
 from scipy.spatial import ConvexHull
 import pickle 
 import numpy as np
-from deepspt_src import *
 from global_config import globals
 import matplotlib.pyplot as plt
 from sklearn.decomposition import *
@@ -37,7 +36,11 @@ from scipy.optimize import minimize
 import trimesh
 import time
 from joblib import Parallel, delayed
-from coloc_pred import *
+
+# change path of import with sys
+import sys
+sys.path.append('../')
+from deepspt_src import *
 from utils.coloc_helpers import *
 
 
@@ -126,7 +129,7 @@ torch.cuda.manual_seed_all(seed)
 # Prep data
 
 # Define where to find experiments
-main_dir = '/scratch/Marilina/20220615_p5_p55_sCMOS_Alex/CS16_SVGA_488soluble_rcTLPAtto565Atto642/'
+main_dir = '../_Data/LLSM_data/Duallabeled_Rotavirus/20220615_p5_p55_sCMOS/CS16_SVGA_488soluble_rcTLPAtto565Atto642/'
 SEARCH_PATTERN = '{}/**/ProcessedTracks.mat'
 OUTPUT_NAME = 'rotavirus'
 _input = SEARCH_PATTERN.format(main_dir)
@@ -255,7 +258,7 @@ number_coloc_tracks = []
 tracks_coloc_info_sum = 0
 timepoints_annotated_by_colocsum = 0
 
-savepath = 'deepspt_results/analytics/duallabelled_results'
+savepath = '../deepspt_results/analytics/duallabelled_results'
 
 experiments = np.unique(DLP_expname_all)
 tracks_seen_already = 0
@@ -461,8 +464,6 @@ print(xcorrelation_coloc.shape, zcorrelation_coloc.shape, ycorrelation_coloc.sha
 print(DLP_tracks_all.shape, VP7_tracks_all.shape)
 
 
-print('need to postprocess coloc tracks')
-
 # if any filter below threshold remove coloc track
 xcorrelation_coloc_filter = xcorrelation_coloc>corr_threshold
 zcorrelation_coloc_filter = zcorrelation_coloc>corr_threshold
@@ -626,6 +627,8 @@ for tp in timepoints_annotated_by_coloc_curated_v2:
         colocalization_label_v2.append(0)
 colocalization_label_v2 = np.array(colocalization_label_v2)
 
+
+# %%
 print(np.unique(colocalization_label_v2, return_counts=True), np.sum(np.unique(colocalization_label_v2, return_counts=True)[1]), len(timepoints_annotated_by_coloc_curated))
 
 
@@ -634,7 +637,7 @@ print(np.unique(colocalization_label_v2, return_counts=True), np.sum(np.unique(c
 tracks = DLP_tracks_all[original_trackidx_curated]
 
 X = [x-x[0] for x in tracks]
-print(len(X), 'len X')
+print(len(X), 'len X', len(np.vstack(X)))
 features = ['XYZ', 'SL', 'DP']
 X_to_eval = add_features(X, features)
 y_to_eval = [np.ones(len(x))*0.5 for x in X_to_eval]
@@ -646,16 +649,16 @@ methods = ['XYZ_SL_DP']
 dim = 3 if 'dim3' in datasets[0] else 2
 # find the model
 dir_name = ''
-modelpath = 'Unet_results/mlruns/'
+modelpath = 'mlruns/'
 modeldir = '36'
 use_mlflow = False
 if use_mlflow:
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
     # not sorted tho
-    path = '/nfs/datasync4/jacobkh/SPT/mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
     print(best_models_sorted)
 
@@ -663,10 +666,10 @@ else:
 min_max_len = 601
 X_padtoken = 0
 y_padtoken = 10
-batch_size = 32
+batch_size = 32 # use if using ensemble_score but doesnt change argmax anyways
 
-savename_score = 'deepspt_results/analytics/RotaEEA1NPC1_ensemble_score.pkl'
-savename_pred = 'deepspt_results/analytics/RotaEEA1NPC1_ensemble_pred.pkl'
+savename_score = '../deepspt_results/analytics/RotaEEA1NPC1_ensemble_score.pkl'
+savename_pred = '../deepspt_results/analytics/RotaEEA1NPC1_ensemble_pred.pkl'
 rerun_segmentaion = True
 ensemble_score, ensemble_pred = run_temporalsegmentation(
                                 best_models_sorted, 
@@ -681,7 +684,7 @@ ensemble_score, ensemble_pred = run_temporalsegmentation(
                                 batch_size=batch_size,
                                 rerun_segmentaion=rerun_segmentaion,
                                 savename_score=savename_score,
-                                savename_pred=savename_pred)
+                                savename_pred=savename_pred,)
 
 # %%
 
@@ -765,15 +768,15 @@ fig.update_layout(scene_camera=dict(eye=dict(x=2, y=-0.1, z=0.2)))
 
 from pathlib import Path
 # save as pdf
-fig.write_image('deepspt_results/figures/Rota_diffcoloured_alltracks3D.pdf')
-fig.write_image('deepspt_results/figures/Rota_black_alltracks3D.pdf')
+fig.write_image('../deepspt_results/figures/Rota_diffcoloured_alltracks3D.pdf')
+fig.write_image('../deepspt_results/figures/Rota_black_alltracks3D.pdf')
 
 fig.show()
     
 
 # %%
 
-fp_datapath = '_Data/Simulated_diffusion_tracks/'
+fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'
 dim = 3
 dt = 4.2
@@ -840,7 +843,7 @@ frame_change_pruned = frame_change[keep_idx]
 window_size = 30
 
 starttime = time.time()
-results2 = Parallel(n_jobs=100)(
+results2 = Parallel(n_jobs=6)(
         delayed(make_tracks_into_FP_timeseries)(
             track, pred_track, window_size=window_size, selected_features=selected_features,
             fp_datapath=fp_datapath, hmm_filename=hmm_filename, dim=dim, dt=dt)
@@ -849,11 +852,11 @@ timeseries_clean = np.array([r[0] for r in results2])
 print('time taken, using parallel??', (time.time()-starttime)/len(uncoating_tracks_pruned))
 
 length_track = np.hstack([len(t) for t in uncoating_tracks_pruned])
-pickle.dump(timeseries_clean, open('deepspt_results/analytics/timeseries_clean.pkl', 'wb'))
-pickle.dump(frame_change_pruned, open('deepspt_results/analytics/frame_change_pruned.pkl', 'wb'))
-pickle.dump(length_track, open('deepspt_results/analytics/length_track.pkl', 'wb'))
-pickle.dump(uncoating_tracks_pruned, open('deepspt_results/analytics/escape_tracks_all.pkl', 'wb'))
-pickle.dump(uncoatingVP7_tracks_pruned, open('deepspt_results/analytics/VP7escape_tracks_all.pkl', 'wb'))
+pickle.dump(timeseries_clean, open('../deepspt_results/analytics/timeseries_clean.pkl', 'wb'))
+pickle.dump(frame_change_pruned, open('../deepspt_results/analytics/frame_change_pruned.pkl', 'wb'))
+pickle.dump(length_track, open('../deepspt_results/analytics/length_track.pkl', 'wb'))
+pickle.dump(uncoating_tracks_pruned, open('../deepspt_results/analytics/escape_tracks_all.pkl', 'wb'))
+pickle.dump(uncoatingVP7_tracks_pruned, open('../deepspt_results/analytics/VP7escape_tracks_all.pkl', 'wb'))
 
 print(uncoatingVP7_tracks_pruned.shape, uncoating_tracks_pruned.shape, uncoating_pred_pruned.shape)
 print(timeseries_clean[0].shape, timeseries_clean.shape)
@@ -909,4 +912,17 @@ len(j_idx_under1), i_idx_under1, j_idx_under1, rmsd_under1
 uniq_like_pairs = np.unique(like_pairs, axis=0, return_index=True)[0]
 uniq_like_pairs_idx = np.unique(like_pairs, axis=0, return_index=True)[1]
 uniq_like_rmsd = rmsd[uniq_like_pairs_idx]
-pickle.dump(uniq_like_pairs, open('deepspt_results/analytics/uniq_like_pairs.pkl', 'wb'))
+pickle.dump(uniq_like_pairs, open('../deepspt_results/analytics/uniq_like_pairs.pkl', 'wb'))
+
+# %%
+
+i,j = 2,3
+print(timeseries_clean.shape, timeseries_clean[i].shape, np.sum(timeseries_clean[i]))
+print(timeseries_clean.shape, timeseries_clean[j].shape, np.sum(timeseries_clean[j]))
+globals.seed
+
+# %%
+np.unique(np.hstack(ensemble_pred), return_counts=True)
+
+
+# %%

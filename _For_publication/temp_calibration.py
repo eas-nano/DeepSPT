@@ -1,5 +1,7 @@
 # %%
 import numpy as np
+import sys
+sys.path.append('../')
 from deepspt_src import *
 import matplotlib.pyplot as plt
 import random
@@ -32,7 +34,7 @@ methods = ['XYZ_SL_DP']
 n_trials = 100
 # find the model
 dir_name = ''
-modelpath = 'Unet_results/mlruns/'
+modelpath = '../mlruns/'
 modeldir = '36'
 use_mlflow = False
 
@@ -42,16 +44,12 @@ dim = 3 if 'dim3' in datasets[0] else 2
 # find the model
 if use_mlflow:
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
-    def find_models_for_from_path(path):
-        # load from path
-        files = sorted(glob(path+'/*/*_UNETmodel.torch', recursive=True))
-        return files
 
     # not sorted tho
-    path = '/nfs/datasync4/jacobkh/SPT/mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
     print(best_models_sorted)
 
@@ -66,7 +64,7 @@ else:
 features = globals.features 
 method = "_".join(features,)
 print(method,'method')
-datapath = '_Data/Simulated_diffusion_tracks/'
+datapath = '../_Data/Simulated_diffusion_tracks/'
 
 
 if dim==3:
@@ -149,8 +147,8 @@ if __name__ == "__main__":
         print("    {}: {}".format(key, value))
 
 temperature = trial.params['temperature']
-pickle.dump(temperature, open('Unet_results/temperature.pkl', 'wb'))
-datapath = 'tracks/'
+pickle.dump(temperature, open('../deepspt_results/analytics/temperature.pkl', 'wb'))
+datapath = '../Data/Simulated_diffusion_tracks/'
 
 # # R = 7-25
 # filenames_X = ['2023711713_hypopttest_SimDiff_coloc_dim2_ntraces32000_Drandom0.0001-0.5_dim2_dt1.0e+00_N5-600_B0.05-0.25_R5-25_subA0-0.7_superA1.3-2_Q1-16_DMtype_active_X.pkl']
@@ -168,13 +166,15 @@ ensemble_score = temperature_pred(X_to_eval, y_to_eval, model,
                                   X_padtoken=X_padtoken, 
                                   y_padtoken=y_padtoken, 
                                   device=device)
+
+# %%
 number_quantiles = 20
 print('temp', temperature)
 print(len(ensemble_score), len(y_to_eval))
-savename = 'deepspt_results/figures/temp_cali_reliability_mldir'+best_models_sorted[0].split('/')[0]
+savename = '../deepspt_results/figures/temp_cali_reliability_mldir'+best_models_sorted[0].split('/')[0]
 reliability_plot(ensemble_score, y_to_eval, number_quantiles = 20, savename=savename)
 
 # %%
 import pickle
-temperature = pickle.load(open('Unet_results/temperature.pkl', 'rb'))
+temperature = pickle.load(open('../deepspt_results/analytics/temperature.pkl', 'rb'))
 temperature

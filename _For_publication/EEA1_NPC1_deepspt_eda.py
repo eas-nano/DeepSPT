@@ -6,6 +6,8 @@ import torch
 import sys
 import os 
 from sklearn.neural_network import MLPClassifier
+import sys
+sys.path.append('../')
 from deepspt_src import *
 import random
 from global_config import globals
@@ -85,7 +87,7 @@ torch.cuda.manual_seed_all(seed)
 datasets = ['SimDiff_dim3_ntraces300000_Drandom0.0001-0.5_dt1.0e+00_N5-600_B0.05-0.25_R5-25_subA0-0.7_superA1.3-2_Q1-16']
 methods = ['XYZ_SL_DP']
 the_data_is = '3D' if 'dim3' in datasets[0] else '2D'
-Unet_figpath = 'Unet_paper_figures/'
+deepspt_figpath = '../deepspt_results/'
 device = globals.device
 
 # find the model
@@ -94,20 +96,20 @@ modeldir = '36'
 
 # find the model
 if use_mlflow:
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
     # not sorted tho
-    path = 'trained_models/{}/'.format(modeldir)
+    path = '../mlruns/{}/'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
     print(os.listdir(path))
     print(best_models_sorted)
 
-modelpath = 'Unet_results/mlruns/'
+modelpath = '../mlruns/'
 
 # Prep data
 # Define where to find experiments
-main_dir = '/scratch/jacobkh/'
+main_dir = '../_Data/LLSM_data/EEA1_NPC1/'
 sub_dir1 = '20230406_p55_p5_sCMOS_Jacob_Anand_Ricky/' # eea1 npc1
 sub_dir1_CS2 = 'CS2_SVGA_EEA1mscarlett_NPC1_JFX646/'
 sub_dir1_CS3 = 'CS3_SVGA_EEA1mscarlett_NPC1_JFX646/'
@@ -119,7 +121,7 @@ EEA1_paths = [main_dir+sub_dir1+sub_dir1_CS2, main_dir+sub_dir1+sub_dir1_CS3,
               main_dir+sub_dir3+sub_dir3_CS1, main_dir+sub_dir3+sub_dir3_CS2]
 NPC1_paths = [main_dir+sub_dir1+sub_dir1_CS2, main_dir+sub_dir1+sub_dir1_CS3,
               main_dir+sub_dir3+sub_dir3_CS1, main_dir+sub_dir3+sub_dir3_CS2]
-
+EEA1_paths
 # %%
 
 xy_to_um, z_to_um = 0.1, 0.25
@@ -387,27 +389,23 @@ device = 'cpu'
 
 # find the model
 dir_name = ''
-modelpath = 'Unet_results/mlruns/'
+modelpath = '../mlruns/'
 modeldir = '36'
 use_mlflow = False
 
 # find the model
 if use_mlflow:
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
-    def find_models_for_from_path(path):
-        # load from path
-        files = sorted(glob(path+'/*/*_UNETmodel.torch', recursive=True))
-        return files
 
     # not sorted tho
-    path = '/nfs/datasync4/jacobkh/SPT/mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
     print(best_models_sorted)
 
-if True:#not os.path.exists(dir_name+'deepspt_results/analytics/ensemble_pred.pkl'):
+if not os.path.exists('../deepspt_results/analytics/EEA1NPC1_llsm_ensemble_score.pkl'):
     files_dict = {}
     for modelname in best_models_sorted:
         if use_mlflow:
@@ -427,11 +425,11 @@ if True:#not os.path.exists(dir_name+'deepspt_results/analytics/ensemble_pred.pk
         ensemble_score = files_dict['ensemble_score']
         ensemble_pred = [np.argmax(files_dict['ensemble_score'][i], axis=0) for i in range(len(files_dict['ensemble_score']))]
 
-    pickle.dump(ensemble_score, open(dir_name+'deepspt_results/analytics/ensemble_score.pkl', 'wb'))
-    pickle.dump(ensemble_pred, open(dir_name+'deepspt_results/analytics/ensemble_pred.pkl', 'wb'))
+    pickle.dump(ensemble_score, open(dir_name+'../deepspt_results/analytics/EEA1NPC1_llsm_ensemble_score.pkl', 'wb'))
+    pickle.dump(ensemble_pred, open(dir_name+'../deepspt_results/analytics/EEA1NPC1_llsm_ensemble_pred.pkl', 'wb'))
 else:
-    ensemble_score = pickle.load(open(dir_name+'deepspt_results/analytics/ensemble_score.pkl', 'rb'))
-    ensemble_pred = pickle.load(open(dir_name+'deepspt_results/analytics/ensemble_pred.pkl', 'rb'))
+    ensemble_score = pickle.load(open(dir_name+'../deepspt_results/analytics/EEA1NPC1_llsm_ensemble_score.pkl', 'rb'))
+    ensemble_pred = pickle.load(open(dir_name+'../deepspt_results/analytics/EEA1NPC1_llsm_ensemble_pred.pkl', 'rb'))
 
 # %%
 
@@ -453,7 +451,7 @@ plt.legend(fontsize=16)
 plt.xticks(np.arange(4), ['Normal', 'Directed', 'Confined', 'Subdiffusive'])
 plt.ylabel('Time (%track)')
 plt.ylim(0,.6)
-plt.savefig('deepspt_results/figures/EEA1vsNPC1_diffusion_barplot.pdf', 
+plt.savefig('../deepspt_results/figures/EEA1vsNPC1_diffusion_barplot.pdf', 
             bbox_inches='tight', pad_inches=0.5)
 plt.show()
 
@@ -463,7 +461,7 @@ endosomal_tracks = tracks
 endosomal_pred = np.array(ensemble_pred)
 expname_all = np.hstack([EEA1_expname_all, NPC1_expname_all])
 
-fp_datapath = '_Data/Simulated_diffusion_tracks/'
+fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'
 dim = 3
 dt = 2.7
@@ -480,11 +478,11 @@ results = Parallel(n_jobs=100)(
 timeseries_clean = np.array([r[0] for r in results])
 
 length_track = np.hstack([len(t) for t in endosomal_tracks])
-pickle.dump(timeseries_clean, open('deepspt_results/analytics/timeseries_EEA1NPC1.pkl', 'wb'))
-pickle.dump(track_labels, open('deepspt_results/analytics/track_labels_rolling_EEA1NPC1.pkl', 'wb'))
-pickle.dump(length_track, open('deepspt_results/analytics/length_track_EEA1NPC1.pkl', 'wb'))
-pickle.dump(endosomal_tracks, open('deepspt_results/analytics/endosomal_tracks_EEA1NPC1.pkl', 'wb'))
-pickle.dump(expname_all, open('deepspt_results/analytics/expname_all_EEA1NPC1.pkl', 'wb'))
+pickle.dump(timeseries_clean, open('../deepspt_results/analytics/timeseries_EEA1NPC1.pkl', 'wb'))
+pickle.dump(track_labels, open('../deepspt_results/analytics/track_labels_rolling_EEA1NPC1.pkl', 'wb'))
+pickle.dump(length_track, open('../deepspt_results/analytics/length_track_EEA1NPC1.pkl', 'wb'))
+pickle.dump(endosomal_tracks, open('../deepspt_results/analytics/endosomal_tracks_EEA1NPC1.pkl', 'wb'))
+pickle.dump(expname_all, open('../deepspt_results/analytics/expname_all_EEA1NPC1.pkl', 'wb'))
 timeseries_clean.shape, timeseries_clean[0].shape, endosomal_tracks.shape, track_labels.shape
 
 
@@ -498,7 +496,7 @@ FP_list = []
 ensemble_pred_list = []
 ensemble_score_list = []
 
-fp_datapath = '_Data/Simulated_diffusion_tracks/'
+fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'
 dim = 3
 dt = 2.7
@@ -507,7 +505,7 @@ min_pred_length = 5
 num_difftypes = 4
 max_change_points = 10
 add_FP = True
-save_PN_name = 'deepspt_results/analytics/20230406_p55_p5_sCMOS_Jacob_Anand_Ricky'
+save_PN_name = '../deepspt_results/analytics/20230406_p55_p5_sCMOS_Jacob_Anand_Ricky'
 if False:#os.path.exists(save_PN_name+'_vanillaFP.pkl'):
         FP = pickle.load(open(save_PN_name+'_vanillaFP.pkl', 'rb'))
 else:
@@ -533,7 +531,7 @@ print(FP_all.shape, FP_all.shape)
 
 # %%
 
-loadpath = 'EEA1_NPC1_results/precomputed_files/coloc_results/coloc_endo/'
+loadpath = '../deepspt_results/EEA1_NPC1_results/precomputed_files/coloc_results/coloc_endo/'
 tracks_coloc_all = []
 track_coloc_info_all = []
 
@@ -611,8 +609,11 @@ y = track_labels.copy()
 y = y[np.isin(track_labels, conditions_to_pred)]//np.max(track_labels[np.isin(track_labels, conditions_to_pred)])
 X = X[np.isin(track_labels, conditions_to_pred)]
 
-pickle.dump(X, open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'wb'))
-pickle.dump(y, open('deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'wb'))
+pickle.dump(X, open('../deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'wb'))
+pickle.dump(y, open('../deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'wb'))
+
+# %%
+
 
 # %%
 
@@ -634,7 +635,7 @@ plt.legend(fontsize=16)
 plt.xticks(np.arange(4), ['Normal', 'Directed', 'Confined', 'Subdiffusive'])
 plt.ylabel('Time (%track)')
 plt.ylim(0,.6)
-plt.savefig('deepspt_results/figures/EEA1vsNPC1_diffusion_barplot.pdf', 
+plt.savefig('../deepspt_results/figures/EEA1vsNPC1_diffusion_barplot.pdf', 
             bbox_inches='tight', pad_inches=0.5)
 plt.show()
 
@@ -663,7 +664,7 @@ for i in range(len(EEA1_tracks_all_random)):
              NPC1_tracks_all_random[i][:,1]-NPC1_tracks_all_random[i][0,1]+ys[i],
              color='dimgrey', lw=1)
 plt.aspect_ratio = 1
-plt.savefig('deepspt_results/figures/EEA1vsNPC1_random_tracks.pdf')
+plt.savefig('../deepspt_results/figures/EEA1vsNPC1_random_tracks.pdf')
 
 
 # %%
@@ -700,7 +701,7 @@ ax[0].set_xlabel('Alpha')
 ax[0].set_ylabel('Density')
 ax[1].set_xlabel('D (\u03BCm\u00b2/s)')
 ax[1].set_ylabel('Density')
-plt.savefig('deepspt_results/figures/EEA1vsNPC1_FP_alphaD.pdf', bbox_inches='tight', pad_inches=0.5)
+plt.savefig('../deepspt_results/figures/EEA1vsNPC1_FP_alphaD.pdf', bbox_inches='tight', pad_inches=0.5)
 
 
 # %%

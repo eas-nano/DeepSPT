@@ -6,6 +6,8 @@ import torch
 import sys
 import os 
 from sklearn.neural_network import MLPClassifier
+import sys
+sys.path.append('../')
 from deepspt_src import *
 import random
 from global_config import globals
@@ -40,10 +42,9 @@ torch.cuda.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
 
 # Prep data
-savepath = 'EEA1_NPC1_results/precomputed_files/coloc_results/coloc_rota'
 
 # Define where to find experiments
-main_dir = '/scratch/Marilina/20220810_p5_p55_sCMOS_Mari_Rota'
+main_dir = '../_Data/LLSM_data/Singlelabeled_Rotavirus_AP2/20220810_p5_p55_sCMOS_Mari_Rota'
 SEARCH_PATTERN = '{}/**/ProcessedTracks.mat'
 OUTPUT_NAME = 'rotavirus'
 _input = SEARCH_PATTERN.format(main_dir)
@@ -206,9 +207,6 @@ Rota_amplitudes_all = np.array(flatten_list([r[6] for r in results]), dtype=obje
 Rota_amplitudes_sig_all = np.array(flatten_list([r[7] for r in results]), dtype=object)
 Rota_amplitudes_bg_all = np.array(flatten_list([r[8] for r in results]), dtype=object)
 len(Rota_filenames_all), Rota_tracks_all.shape
-
-dist_to_ap2hull_all = pickle.load(open('deepspt_results/analytics/Rota560nm_dist_to_ap2hull_all.pkl', 'rb'))
-dist_to_ap2hull_all = np.array(dist_to_ap2hull_all)
 
 Rota_expname_all
 
@@ -420,7 +418,7 @@ plt.scatter(90, Rota_amplitudes_all[track_idx][90,0],
 plt.legend()
 plt.xlabel('Time (frames)')
 plt.ylabel('Intensity (a.u.)')
-plt.savefig('deepspt_results/figures/Rota560nm_manualannot_track_example.pdf')
+plt.savefig('../deepspt_results/figures/Rota560nm_manualannot_track_example.pdf')
 
 # %%
 
@@ -440,16 +438,16 @@ methods = ['XYZ_SL_DP']
 dim = 3 if 'dim3' in datasets[0] else 2
 # find the model
 dir_name = ''
-modelpath = 'Unet_results/mlruns/'
+modelpath = '../mlruns/'
 modeldir = '36'
 use_mlflow = False
 if use_mlflow:
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
     # not sorted tho
-    path = '/nfs/datasync4/jacobkh/SPT/mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
     print(best_models_sorted)
 
@@ -459,9 +457,9 @@ X_padtoken = 0
 y_padtoken = 10
 batch_size = 32
 
-savename_score = 'deepspt_results/analytics/Rota560_ensemble_score.pkl'
-savename_pred = 'deepspt_results/analytics/Rota560_ensemble_pred.pkl'
-rerun_segmentaion = True
+savename_score = '../deepspt_results/analytics/Rota560_ensemble_score.pkl'
+savename_pred = '../deepspt_results/analytics/Rota560_ensemble_pred.pkl'
+rerun_segmentaion = False
 ensemble_score, ensemble_pred = run_temporalsegmentation(
                                 best_models_sorted, 
                                 X_to_eval, y_to_eval,
@@ -530,7 +528,7 @@ for i,idx in tqdm(enumerate(frames_unoat_start_manual.keys())):
     manual_tracks_all.append(manual_track)
     manual_pred_all.append(manual_pred)
 
-fp_datapath = '_Data/Simulated_diffusion_tracks/'
+fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'
 dt = 4
 min_seglen_for_FP = 5
@@ -538,7 +536,7 @@ min_pred_length = 5
 num_difftypes = 4
 max_change_points = 10
 add_FP = True
-save_PN_name = 'deepspt_results/analytics/20220810_p5_p55_sCMOS_Mari_Rota'
+save_PN_name = '../deepspt_results/analytics/20220810_p5_p55_sCMOS_Mari_Rota'
 window_size = 30
 results = Parallel(n_jobs=100)(
         delayed(make_tracks_into_FP_timeseries)(
@@ -568,10 +566,10 @@ uncoat_end_all_clean = uncoat_end_all_clean[keep_idx]
 uncoat_start_all = np.array(uncoat_start_all)[keep_idx]
 manual_tracks_all = np.array(manual_tracks_all)[keep_idx]
 
-pickle.dump(timeseries_clean, open('deepspt_results/analytics/timeseries_clean560nm.pkl', 'wb'))
-pickle.dump(length_track, open('deepspt_results/analytics/length_track560nm.pkl', 'wb'))
-pickle.dump(uncoat_end_all_clean, open('deepspt_results/analytics/frame_change_pruned560nm.pkl', 'wb'))
-pickle.dump(uncoat_start_all, open('deepspt_results/analytics/frame_change_pruned560nm_v2.pkl', 'wb'))
-pickle.dump(manual_tracks_all, open('deepspt_results/analytics/escape_tracks_all560nm.pkl', 'wb'))
+pickle.dump(timeseries_clean, open('../deepspt_results/analytics/timeseries_clean560nm.pkl', 'wb'))
+pickle.dump(length_track, open('../deepspt_results/analytics/length_track560nm.pkl', 'wb'))
+pickle.dump(uncoat_end_all_clean, open('../deepspt_results/analytics/frame_change_pruned560nm.pkl', 'wb'))
+pickle.dump(uncoat_start_all, open('../deepspt_results/analytics/frame_change_pruned560nm_v2.pkl', 'wb'))
+pickle.dump(manual_tracks_all, open('../deepspt_results/analytics/escape_tracks_all560nm.pkl', 'wb'))
 
 # %%

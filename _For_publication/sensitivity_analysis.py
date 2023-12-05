@@ -1,6 +1,8 @@
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+sys.path.append('../')
 from deepspt_src import *
 import matplotlib.pyplot as plt
 import random
@@ -29,7 +31,7 @@ Drange_paths_Y_3D
 
 # ****************Initiate variables**********************
 methods = ['XYZ_SL_DP']
-Unet_figpath = 'Unet_paper_figures/'
+deepspt_figpath = '../deepspt_results/figures'
 
 # global config variables
 globals._parse({})
@@ -45,7 +47,7 @@ device = globals.device
 
 # data paths
 subdir = 'Nrange/'
-main_dir = '_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir
+main_dir = '../_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir
 dim = 2
 if dim==3:
     modeldir = '36'
@@ -67,25 +69,34 @@ elif dim==2:
     if subdir == 'Drange/':
         paths_X, paths_Y = Drange_paths_X_2D, Drange_paths_Y_2D
 
-# find the model
-use_mlflow = False
-min_max_len = 601
-modelpath = 'Unet_results/mlruns/'
+# define dataset and method that model was trained on to find the model
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+methods = ['XYZ_SL_DP']
 features = ['XYZ', 'SL', 'DP']
-
+dim = 3 if 'dim3' in datasets[0] else 2
 # find the model
+dir_name = ''
+modelpath = 'Unet_results/mlruns/'
+modeldir = '3'
+use_mlflow = False
 if use_mlflow:
+    import mlflow
     mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
     # not sorted tho
-    path = 'trained_models/{}/'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
-    print(os.listdir(path))
     print(best_models_sorted)
 
-print('_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl')
-if not os.path.exists('_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl'):   
+# model params
+min_max_len = 601
+X_padtoken = 0
+y_padtoken = 10
+batch_size = 32
+
+print('../_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl')
+if not os.path.exists('../_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl'):   
     results_dict = {}
     for path_x, path_y in zip(paths_X, paths_Y):
         X, y_to_eval = pickle.load(open(main_dir+path_x, 'rb')), pickle.load(open(main_dir+path_y, 'rb'))
@@ -117,7 +128,7 @@ if not os.path.exists('_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+s
         print(files_dict['flat_acc'], np.median(files_dict['track_acc']))
         results_dict[path_x] = files_dict
 
-    pickle.dump(results_dict, open('_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl', 'wb'))
+    pickle.dump(results_dict, open('../_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl', 'wb'))
     print(results_dict.keys())
     print(results_dict[path_x])
     print(results_dict[path_x].keys())
@@ -125,7 +136,7 @@ if not os.path.exists('_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+s
 else:
     results_dict = pickle.load(
                 open(
-                    '_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl', 'rb'))
+                    '../_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl', 'rb'))
 
 
 
@@ -134,7 +145,7 @@ dim = 3 # 2 or 3
 subdir = 'Qrange/' # 'Nrange/' 'Drange/' 'Qrange/'
 results_dict = pickle.load(
                 open(
-                    '_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl', 'rb'))
+                    '../_Data/Simulated_diffusion_tracks/sensitivity_analysis/'+subdir.replace('/','_dim')+str(dim)+'_results_dir.pkl', 'rb'))
 keys = list(results_dict.keys())
 
 medians_list = []
@@ -182,7 +193,7 @@ plt.xlabel(xlabel, size=18)
 plt.ylabel('Mean Track Accuracy', size=18)
 plt.title('mean acc')
 plt.tight_layout()
-plt.savefig(Unet_figpath+'/paper_figures/SI/sensitivity_mean_track_acc_'+subdir.replace('/','')+'dim'+str(dim)+'.pdf')
+plt.savefig(deepspt_figpath+'/SI/sensitivity_mean_track_acc_'+subdir.replace('/','')+'dim'+str(dim)+'.pdf')
 
 plt.figure(figsize=(6,5))
 plt.scatter(x, medians_list, color='navy')
@@ -192,7 +203,7 @@ plt.xlabel(xlabel, size=18)
 plt.ylabel('Median Track Accuracy', size=18)
 plt.title('median acc')
 plt.tight_layout()
-plt.savefig(Unet_figpath+'/paper_figures/SI/sensitivity_median_track_acc_'+subdir.replace('/','')+'dim'+str(dim)+'.pdf')
+plt.savefig(deepspt_figpath+'/SI/sensitivity_median_track_acc_'+subdir.replace('/','')+'dim'+str(dim)+'.pdf')
 
 plt.figure(figsize=(6,5))
 plt.scatter(x, flat_acc_list, color='navy')
@@ -202,6 +213,6 @@ plt.xlabel(xlabel, size=18)
 plt.ylabel('Accuracy', size=18)
 plt.title('acc')
 plt.tight_layout()
-plt.savefig(Unet_figpath+'/paper_figures/SI/sensitivity_acc_'+subdir.replace('/','')+'dim'+str(dim)+'.pdf')
+plt.savefig(deepspt_figpath+'/SI/sensitivity_acc_'+subdir.replace('/','')+'dim'+str(dim)+'.pdf')
 
 # %%

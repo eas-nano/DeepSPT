@@ -4304,7 +4304,10 @@ def SquareDist(x0, x1, y0, y1, z0, z1):
 def get_inst_msd(tracks, dim, dt):
     inst_msds_all = []
     for i, t in enumerate(tracks):
-        x, y, z = t[:,0], t[:,1], t[:,2]
+        if dim == 3:
+            x, y, z = t[:,0], t[:,1], t[:,2]
+        elif dim == 2:
+            x, y, z = t[:,0], t[:,1], np.zeros(len(t))
         lag = 1
         inst_msd = np.mean(
                     [
@@ -4364,7 +4367,7 @@ def run_temporalsegmentation(best_models_sorted,
                                  rerun_segmentaion=True,
                                  savename_score='ensemble_score.pkl',
                                  savename_pred='ensemble_pred.pkl',
-                                 use_temperature=True):
+                                 use_temperature=False):
        
         random.seed(seed)
         np.random.seed(seed)
@@ -4436,24 +4439,29 @@ def make_tracks_into_FP_timeseries(track, pred_track, window_size=40, selected_f
         FP_vanilla_segment = create_fingerprint_track(
                                         t, fp_datapath, hmm_filename, 
                                         dim, dt, 'Normal').reshape(1,-1)
+
+        print(FP_vanilla_segment)
+        print(np.sum(FP_vanilla_segment))
         new_feature1, new_feature2, new_feature3,\
         new_feature4, new_feature5,\
-        new_feature8 = gen_temporal_features([p])
+        new_feature6 = gen_temporal_features([p])
+        print(new_feature1, new_feature2, new_feature3, new_feature4, new_feature5, new_feature6)
         inst_msds_D_all = get_inst_msd([t], dim, dt)
+        print(inst_msds_D_all)
         perc_ND, perc_DM, perc_CD,\
         perc_SD, num_cp = get_perc_per_diff([p])
+        print(perc_ND, perc_DM, perc_CD, perc_SD, num_cp)
         FP_segment = np.column_stack([FP_vanilla_segment, 
                                     perc_ND.reshape(-1,1), perc_DM.reshape(-1,1), 
                                     perc_CD.reshape(-1,1), perc_SD.reshape(-1,1), 
                                     num_cp.reshape(-1,1),  inst_msds_D_all.reshape(-1,1), 
                                     new_feature1.reshape(-1,1), new_feature2.reshape(-1,1), 
                                     new_feature3.reshape(-1,1), new_feature4.reshape(-1,1), 
-                                    new_feature5.reshape(-1,1), new_feature8.reshape(-1,1)])
+                                    new_feature5.reshape(-1,1), new_feature6.reshape(-1,1)])
         FP_segment[np.isnan(FP_segment)] = 0
         FP_segment = FP_segment[:,selected_features].reshape(-1,1,len(selected_features))
         FP_segment_repeat = np.repeat(FP_segment, len(t), axis=1)
         timeseries[center, np.max([0,min_value-corr_min]):np.min([max_value+corr_max, len(track)]),:] = FP_segment_repeat
-    
     timeseries_clean = np.zeros((1, len(track), len(selected_features)))
     for col in range(len(timeseries)):
         a = np.mean(

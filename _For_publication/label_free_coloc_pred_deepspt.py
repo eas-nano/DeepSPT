@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 from glob import glob
 import os
+import sys
+sys.path.append('../')
 from deepspt_src import *
-    
 
 # Define the MLP architecture
 class MLP(nn.Module):
@@ -42,7 +43,7 @@ class EndosomeDataset(Dataset):
 coloc_experiment = 'rotavirus' # rotavirus, dextran
 EEA1val,NPC1val = 0,1
 if coloc_experiment == 'rotavirus':
-    loadpath = 'EEA1_NPC1_results/precomputed_files/coloc_results/coloc_rota/'
+    loadpath = '../deepspt_results/EEA1_NPC1_results/precomputed_files/coloc_results/coloc_rota/'
 
     tracks_coloc_all = []
     track_coloc_info_all = []
@@ -118,81 +119,6 @@ if coloc_experiment == 'rotavirus':
     print(len(tracks_coloc_all), len(track_coloc_info_all), len(has_ones), len(tracks_coloc_full_all))
     assert len(tracks_coloc_all) == len(track_coloc_info_all) == len(has_ones)
 
-elif coloc_experiment == 'dextran':
-    loadpath = 'EEA1_NPC1_results/precomputed_files/coloc_results/coloc_dextran/'
-    tracks_coloc_all = []
-    track_coloc_info_all = []
-    timepoint_annotation_all = []
-    tracks_coloc_EEA1_NPC1_labels = []
-    tracks_coloc_info_EEA1_NPC1_labels = []
-    timepoint_annotation_EEA1_NPC1_labels = []
-    tracks_coloc_full_all = []
-    tracks_coloc_full_EEA1_NPC1_labels = []
-
-    experiment_name_coloc = []
-    experiment_name_coloc_full = []
-    experiment_name_timepoint = []
-    experiment_name_coloc_info = []
-
-    for file in np.sort(glob(loadpath+'*', recursive=True)):
-        if 'DEXTRANcoloc_EEA1' in file:
-            tracks_coloc = pickle.load(open(file, 'rb'))
-            for t in tracks_coloc:
-                experiment_name_coloc.append(file.split('DEXTRAN')[0]+'_EEA1')
-                tracks_coloc_all.append(t)
-                tracks_coloc_EEA1_NPC1_labels.append(EEA1val)
-        if 'DEXTRANcoloc_NPC1' in file:
-            tracks_coloc = pickle.load(open(file, 'rb'))
-            for t in tracks_coloc:
-                experiment_name_coloc.append(file.split('DEXTRAN')[0]+'_NPC1')
-                tracks_coloc_all.append(t)
-                tracks_coloc_EEA1_NPC1_labels.append(NPC1val)
-        if 'DEXTRANcoloc_info_EEA1' in file:
-            track_coloc_info = pickle.load(open(file, 'rb'))
-            for t in track_coloc_info:
-                experiment_name_coloc_info.append(file.split('DEXTRAN')[0]+'_EEA1')
-                track_coloc_info_all.append(t)
-                tracks_coloc_info_EEA1_NPC1_labels.append(EEA1val)
-        if 'DEXTRANcoloc_info_NPC1' in file:
-            track_coloc_info = pickle.load(open(file, 'rb'))
-            for t in track_coloc_info:
-                experiment_name_coloc_info.append(file.split('DEXTRAN')[0]+'_NPC1')
-                track_coloc_info_all.append(t)
-                tracks_coloc_info_EEA1_NPC1_labels.append(NPC1val)
-        if 'DEXTRANtimepoints_annotated_by_colocEEA1' in file:
-            timepoint_annotation = pickle.load(open(file, 'rb'))
-            for t in timepoint_annotation:
-                experiment_name_timepoint.append(file.split('DEXTRAN')[0]+'_EEA1')
-                timepoint_annotation_all.append(t)
-                timepoint_annotation_EEA1_NPC1_labels.append(EEA1val)
-        if 'DEXTRANtimepoints_annotated_by_colocNPC1' in file:
-            timepoint_annotation = pickle.load(open(file, 'rb'))
-            for t in timepoint_annotation:
-                experiment_name_timepoint.append(file.split('DEXTRAN')[0]+'_NPC1')
-                timepoint_annotation_all.append(t)
-                timepoint_annotation_EEA1_NPC1_labels.append(NPC1val)
-        if 'DEXTRANcoloc_tracks_fullEEA1' in file:
-            tracks_coloc_full = pickle.load(open(file, 'rb'))
-            for t in tracks_coloc_full:
-                experiment_name_coloc_full.append(file.split('DEXTRAN')[0]+'_EEA1')
-                tracks_coloc_full_all.append(t)
-                tracks_coloc_full_EEA1_NPC1_labels.append(EEA1val)
-        if 'DEXTRANcoloc_tracks_fullNPC1' in file:
-            tracks_coloc_full = pickle.load(open(file, 'rb'))
-            for t in tracks_coloc_full:
-                experiment_name_coloc_full.append(file.split('DEXTRAN')[0]+'_NPC1')
-                tracks_coloc_full_all.append(t)
-                tracks_coloc_full_EEA1_NPC1_labels.append(NPC1val)
-
-    has_ones = []
-    for l in timepoint_annotation_all:
-        if 1. in np.array(l[0]):
-            
-            has_ones.append(1)
-    
-    print(len(tracks_coloc_all), len(track_coloc_info_all), len(has_ones), len(tracks_coloc_full_all))
-    assert len(tracks_coloc_all) == len(track_coloc_info_all) == len(has_ones)
-
 # %%
 experiment_name_coloc = np.array(experiment_name_coloc)
 experiment_name_timepoint = np.array(experiment_name_timepoint)
@@ -264,7 +190,7 @@ if coloc_experiment == 'dextran' or coloc_experiment == 'rotavirus':
 X_tracks = np.array(X_tracks, dtype=object)
 y = np.hstack(y)
 endo_coloclabel = y.copy()
-pickle.dump(y, open('deepspt_results/analytics/rota_coloc_y.pkl', 'wb'))
+pickle.dump(y, open('../deepspt_results/analytics/rota_coloc_y.pkl', 'wb'))
 has_dup = np.hstack(has_dup)
 len(y), len(endo_coloclabel), np.mean(endo_coloclabel==y),
 
@@ -284,16 +210,16 @@ methods = ['XYZ_SL_DP']
 dim = 3 if 'dim3' in datasets[0] else 2
 # find the model
 dir_name = ''
-modelpath = 'Unet_results/mlruns/'
+modelpath = '../mlruns/'
 modeldir = '36'
 use_mlflow = False
 if use_mlflow:
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
     # not sorted tho
-    path = '/nfs/datasync4/jacobkh/SPT/mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
     print(best_models_sorted)
 
@@ -303,8 +229,8 @@ X_padtoken = 0
 y_padtoken = 10
 batch_size = 32
 
-savename_score = 'deepspt_results/analytics/coloc_'+coloc_experiment+'_ensemble_score.pkl'
-savename_pred = 'deepspt_results/analytics/coloc_'+coloc_experiment+'_ensemble_pred.pkl'
+savename_score = '../deepspt_results/analytics/coloc_'+coloc_experiment+'_ensemble_score.pkl'
+savename_pred = '../deepspt_results/analytics/coloc_'+coloc_experiment+'_ensemble_pred.pkl'
 rerun_segmentaion = True
 ensemble_score, ensemble_pred = run_temporalsegmentation(
                                 best_models_sorted, 
@@ -331,7 +257,7 @@ FP_list = []
 ensemble_pred_list = []
 ensemble_score_list = []
 
-fp_datapath = '_Data/Simulated_diffusion_tracks/'
+fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'
 dim = 3
 dt = 2.7
@@ -340,7 +266,7 @@ min_pred_length = 5
 num_difftypes = 4
 max_change_points = 10
 add_FP = True
-save_PN_name = 'EEA1_NPC1_results/precomputed_files/coloc_results/coloc_rota/Coloc_'+coloc_experiment
+save_PN_name = '../deepspt_results/EEA1_NPC1_results/precomputed_files/coloc_results/coloc_rota/Coloc_'+coloc_experiment
 
 fp_names = np.array(['Alpha', 'D', 'extra', 'pval', 'Efficiency', 'logEfficiency', 'FractalDim', 
                      'Gaussianity', 'Kurtosis', 'MSDratio', 
@@ -358,18 +284,22 @@ selected_features = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,17,18,
                               19,20,21,23,24,25,27,28,29,30,31,
                               32,33,34,35,36,37,38,39,40,41,42])
 
-FP_all = create_temporalfingerprint(X_tracks, 
-                                  ensemble_pred, fp_datapath, hmm_filename, dim, dt,
-                                  selected_features=selected_features)
+if not os.path.exists(save_PN_name+'_FP_all_DeepSPT.pkl'):
+    FP_all = create_temporalfingerprint(X_tracks, 
+                                    ensemble_pred, fp_datapath, hmm_filename, dim, dt,
+                                    selected_features=selected_features)
 
-pickle.dump(FP_all, open(loadpath+'coloc_'+coloc_experiment+'_FP_all.pkl', 'wb'))
-pickle.dump(y, open(loadpath+'coloc_'+coloc_experiment+'_y.pkl', 'wb'))
+    pickle.dump(FP_all, open(loadpath+'coloc_'+coloc_experiment+'_FP_all.pkl', 'wb'))
+    pickle.dump(y, open(loadpath+'coloc_'+coloc_experiment+'_y.pkl', 'wb'))
+else:
+    FP_all = pickle.load(open(save_PN_name+'_FP_all_DeepSPT.pkl', 'rb'))
+    y = pickle.load(open(save_PN_name+'_y_DeepSPT.pkl', 'rb'))
 
 # %%
 
 import joblib
 
-modelsavepath = 'EEA1_NPC1_results/precomputed_files/eea1npc1_classifier/'
+modelsavepath = '../deepspt_results/EEA1_NPC1_results/precomputed_files/eea1npc1_classifier/'
 scaler = joblib.load(modelsavepath+'scaler.pkl')
 
 X_scaled = FP_all
@@ -438,12 +368,16 @@ y_pred_all = y_pred[y_pred!=-1]
 y_test_all = y_test[y_pred!=-1]
 N_test = len(y_test_all)
 
+print(N_test, len(y_pred_all), 'N_test')
+
 print(np.unique(y, return_counts=True)[1]/len(y))
 print(np.unique(y_pred[y_pred!=-1], return_counts=True)[1]/len(y_pred[y_pred!=-1]))
 
 print(f'Test Acc = {test_acc:.4f}')
 print(f'Test Acc = {np.mean(test_acc):.4f}')
 
+
+# %%
 cms = np.array([[np.mean(pred_TP),np.mean(pred_FP)],
                 [np.mean(pred_FN), np.mean(pred_TN)]])
 cms_stds = np.array([[np.std(pred_TP, ddof=1),np.std(pred_FP, ddof=1)],
@@ -473,7 +407,7 @@ plt.title(
         len(np.hstack(y_pred_all)), N_test, flat_acc, f1_), size=16)
 
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/coloc_to_EEA1NPC1_'+coloc_experiment+'conf_threshold'+str(conf_threshold)+'_confusion_matrix.pdf',
+plt.savefig('../deepspt_results/figures/coloc_to_EEA1NPC1_'+coloc_experiment+'conf_threshold'+str(conf_threshold)+'_confusion_matrix.pdf',
             pad_inches=0.2, bbox_inches='tight')
 plt.show()
 print(classification_report(np.hstack(y_test_all), np.hstack(y_pred_all), target_names=diffs[conditions_to_pred]))
@@ -513,7 +447,7 @@ plt.title(
         len(np.hstack(y_pred_all)), N_test, flat_acc, f1_), size=16)
 
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/coloc_to_EEA1NPC1_'+coloc_experiment+'conf_threshold'+str(conf_threshold)+'_Normalizedconfusion_matrix.pdf',
+plt.savefig('../deepspt_results/figures/coloc_to_EEA1NPC1_'+coloc_experiment+'conf_threshold'+str(conf_threshold)+'_Normalizedconfusion_matrix.pdf',
             pad_inches=0.2, bbox_inches='tight')
 plt.show()
 print(classification_report(np.hstack(y_test_all), np.hstack(y_pred_all), target_names=diffs[conditions_to_pred]))

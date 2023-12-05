@@ -99,21 +99,21 @@ endo_recall1_mean = []
 endo_recall1_stds = []
 endo_recall2_mean = []
 endo_recall2_stds = []
-for exp_type in ['ap2', 'E_vs_N']: # ['ap2']: # 
-    for conditions_to_pred in ['all']: # ['alpha', 'D', 'D+alpha', 'all']: #
+for exp_type in ['E_vs_N']:#['ap2', 'E_vs_N']: # ['ap2']: # 
+    for conditions_to_pred in ['all']:#['alpha', 'D', 'D+alpha', 'all']: #
         print('conditions_to_pred', conditions_to_pred)
         if exp_type == 'ap2':
-            FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,1:2])
+            FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
             if conditions_to_pred == 'alpha':
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,0:1])
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,0:1])
             elif conditions_to_pred == 'D':
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,1:2])
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
             elif conditions_to_pred == 'D+alpha':
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,0:2])
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,0:2])
             else:
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb')))
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb')))
 
-            y_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPy.pkl', 'rb')))
+            y_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPy_DeepSPT.pkl', 'rb')))
             kf = StratifiedKFold(n_splits=10, shuffle=True, 
                                  random_state=random_state)
             l1, l2 = 'Dorsal', 'Ventral'
@@ -125,18 +125,18 @@ for exp_type in ['ap2', 'E_vs_N']: # ['ap2']: #
 
         elif exp_type == 'E_vs_N':
             if conditions_to_pred == 'alpha':
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,0:1])
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,0:1])
             elif conditions_to_pred == 'D':
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,1:2])
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
             elif conditions_to_pred == 'D+alpha':
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,0:2])
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,0:2])
             else:
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb')))
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb')))
 
-            y_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'rb')))
+            y_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'rb')))
             kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=random_state)
             l1, l2 = 'EEA1', 'NPC1'
-            conf_threshold = 0.5
+            conf_threshold = 0.6
             lr = 10**-3
             num_epochs =  10
             batch_size = 32
@@ -347,7 +347,7 @@ for exp_type in ['ap2', 'E_vs_N']: # ['ap2']: #
             'N: {} tracks, conf. threshold{} \nAccuracy: {:.2f} {:.2f}, F1-score: {:.3f}'.format(
                 np.sum(N_test), conf_threshold, np.mean(np.array(test_acc_all)*100), np.std(np.array(test_acc_all)*100, ddof=1), f1_), size=16)
         plt.tight_layout()
-        plt.savefig('deepspt_results/figures/{}_{}_confthres{}_confusion_matrix.pdf'.format(exp_type, conditions_to_pred, conf_threshold),
+        plt.savefig('../deepspt_results/figures/{}_{}_confthres{}_confusion_matrix.pdf'.format(exp_type, conditions_to_pred, conf_threshold),
                     pad_inches=0.2, bbox_inches='tight')
         plt.show()
         # print(classification_report(np.hstack(y_test_all)[np.hstack(y_pred_all)!=-1], 
@@ -355,46 +355,46 @@ for exp_type in ['ap2', 'E_vs_N']: # ['ap2']: #
         #                             target_names=diffs))
 
 import pickle
-pickle.dump(ap2_acc_mean, open('deepspt_results/analytics/ap2_acc_mean.pkl', 'wb'))
-pickle.dump(ap2_acc_all, open('deepspt_results/analytics/ap2_acc_all.pkl', 'wb'))
-pickle.dump(ap2_acc_stds, open('deepspt_results/analytics/ap2_acc_stds.pkl', 'wb'))
-pickle.dump(ap2_recall1_mean, open('deepspt_results/analytics/ap2_recall1_mean.pkl', 'wb'))
-pickle.dump(ap2_recall1_stds, open('deepspt_results/analytics/ap2_recall1_stds.pkl', 'wb'))
-pickle.dump(ap2_recall2_mean, open('deepspt_results/analytics/ap2_recall2_mean.pkl', 'wb'))
-pickle.dump(ap2_recall2_stds, open('deepspt_results/analytics/ap2_recall2_stds.pkl', 'wb'))
+pickle.dump(ap2_acc_mean, open('../deepspt_results/analytics/ap2_acc_mean.pkl', 'wb'))
+pickle.dump(ap2_acc_all, open('../deepspt_results/analytics/ap2_acc_all.pkl', 'wb'))
+pickle.dump(ap2_acc_stds, open('../deepspt_results/analytics/ap2_acc_stds.pkl', 'wb'))
+pickle.dump(ap2_recall1_mean, open('../deepspt_results/analytics/ap2_recall1_mean.pkl', 'wb'))
+pickle.dump(ap2_recall1_stds, open('../deepspt_results/analytics/ap2_recall1_stds.pkl', 'wb'))
+pickle.dump(ap2_recall2_mean, open('../deepspt_results/analytics/ap2_recall2_mean.pkl', 'wb'))
+pickle.dump(ap2_recall2_stds, open('../deepspt_results/analytics/ap2_recall2_stds.pkl', 'wb'))
 
-pickle.dump(endo_acc_mean, open('deepspt_results/analytics/endo_acc_mean.pkl', 'wb'))
-pickle.dump(endo_acc_all, open('deepspt_results/analytics/endo_acc_all.pkl', 'wb'))
-pickle.dump(endo_acc_stds, open('deepspt_results/analytics/endo_acc_stds.pkl', 'wb'))
-pickle.dump(endo_recall1_mean, open('deepspt_results/analytics/endo_recall1_mean.pkl', 'wb'))
-pickle.dump(endo_recall1_stds, open('deepspt_results/analytics/endo_recall1_stds.pkl', 'wb'))
-pickle.dump(endo_recall2_mean, open('deepspt_results/analytics/endo_recall2_mean.pkl', 'wb'))
-pickle.dump(endo_recall2_stds, open('deepspt_results/analytics/endo_recall2_stds.pkl', 'wb'))
+pickle.dump(endo_acc_mean, open('../deepspt_results/analytics/endo_acc_mean.pkl', 'wb'))
+pickle.dump(endo_acc_all, open('../deepspt_results/analytics/endo_acc_all.pkl', 'wb'))
+pickle.dump(endo_acc_stds, open('../deepspt_results/analytics/endo_acc_stds.pkl', 'wb'))
+pickle.dump(endo_recall1_mean, open('../deepspt_results/analytics/endo_recall1_mean.pkl', 'wb'))
+pickle.dump(endo_recall1_stds, open('../deepspt_results/analytics/endo_recall1_stds.pkl', 'wb'))
+pickle.dump(endo_recall2_mean, open('../deepspt_results/analytics/endo_recall2_mean.pkl', 'wb'))
+pickle.dump(endo_recall2_stds, open('../deepspt_results/analytics/endo_recall2_stds.pkl', 'wb'))
 
 # %%
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-ap2_acc_all = pickle.load(open('deepspt_results/analytics/ap2_acc_all.pkl', 'rb'))
-ap2_acc_mean = pickle.load(open('deepspt_results/analytics/ap2_acc_mean.pkl', 'rb'))
-ap2_acc_stds = pickle.load(open('deepspt_results/analytics/ap2_acc_stds.pkl', 'rb'))
-ap2_recall1_mean = pickle.load(open('deepspt_results/analytics/ap2_recall1_mean.pkl', 'rb'))
-ap2_recall1_stds = pickle.load(open('deepspt_results/analytics/ap2_recall1_stds.pkl', 'rb'))
-ap2_recall2_mean = pickle.load(open('deepspt_results/analytics/ap2_recall2_mean.pkl', 'rb'))
-ap2_recall2_stds = pickle.load(open('deepspt_results/analytics/ap2_recall2_stds.pkl', 'rb'))
+ap2_acc_all = pickle.load(open('../deepspt_results/analytics/ap2_acc_all.pkl', 'rb'))
+ap2_acc_mean = pickle.load(open('../deepspt_results/analytics/ap2_acc_mean.pkl', 'rb'))
+ap2_acc_stds = pickle.load(open('../deepspt_results/analytics/ap2_acc_stds.pkl', 'rb'))
+ap2_recall1_mean = pickle.load(open('../deepspt_results/analytics/ap2_recall1_mean.pkl', 'rb'))
+ap2_recall1_stds = pickle.load(open('../deepspt_results/analytics/ap2_recall1_stds.pkl', 'rb'))
+ap2_recall2_mean = pickle.load(open('../deepspt_results/analytics/ap2_recall2_mean.pkl', 'rb'))
+ap2_recall2_stds = pickle.load(open('../deepspt_results/analytics/ap2_recall2_stds.pkl', 'rb'))
 
-endo_acc_all = pickle.load(open('deepspt_results/analytics/endo_acc_all.pkl', 'rb'))
-endo_acc_mean = pickle.load(open('deepspt_results/analytics/endo_acc_mean.pkl', 'rb'))
-endo_acc_stds = pickle.load(open('deepspt_results/analytics/endo_acc_stds.pkl', 'rb'))
-endo_recall1_mean = pickle.load(open('deepspt_results/analytics/endo_recall1_mean.pkl', 'rb'))
-endo_recall1_stds = pickle.load(open('deepspt_results/analytics/endo_recall1_stds.pkl', 'rb'))
-endo_recall2_mean = pickle.load(open('deepspt_results/analytics/endo_recall2_mean.pkl', 'rb'))
-endo_recall2_stds = pickle.load(open('deepspt_results/analytics/endo_recall2_stds.pkl', 'rb'))
+endo_acc_all = pickle.load(open('../deepspt_results/analytics/endo_acc_all.pkl', 'rb'))
+endo_acc_mean = pickle.load(open('../deepspt_results/analytics/endo_acc_mean.pkl', 'rb'))
+endo_acc_stds = pickle.load(open('../deepspt_results/analytics/endo_acc_stds.pkl', 'rb'))
+endo_recall1_mean = pickle.load(open('../deepspt_results/analytics/endo_recall1_mean.pkl', 'rb'))
+endo_recall1_stds = pickle.load(open('../deepspt_results/analytics/endo_recall1_stds.pkl', 'rb'))
+endo_recall2_mean = pickle.load(open('../deepspt_results/analytics/endo_recall2_mean.pkl', 'rb'))
+endo_recall2_stds = pickle.load(open('../deepspt_results/analytics/endo_recall2_stds.pkl', 'rb'))
 
-conditions_to_pred_list = ['Alpha', 'D', 'D & alpha', 'DeepSPT']
+conditions_to_pred_list = ['Alpha', 'D', 'D & alpha', '../deepsPT']
 
-
+print(len(endo_acc_all))
 
 # calculate welsch t-test for accuracy
 from scipy.stats import ttest_ind
@@ -442,7 +442,7 @@ ax[0].set_xticks([])
 ax[1].set_xticks(list(range(len(conditions_to_pred_list))), conditions_to_pred_list, rotation=45, size=14)
 
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/accuracy_benchmarkfig4j.pdf', bbox_inches='tight',
+plt.savefig('../deepspt_results/figures/accuracy_benchmarkfig4j.pdf', bbox_inches='tight',
             pad_inches=0.2)
 
 # %%
@@ -476,17 +476,17 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
         for conf_threshold in [0.5, 0.6, 0.7, 0.8, 0.9]:
             print('conditions_to_pred', conditions_to_pred)
             if exp_type == 'ap2':
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,1:2])
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
                 if conditions_to_pred == 'alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,0:1])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,0:1])
                 elif conditions_to_pred == 'D':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,1:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
                 elif conditions_to_pred == 'D+alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,0:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,0:2])
                 else:
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb')))
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb')))
 
-                y_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPy.pkl', 'rb')))
+                y_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPy_DeepSPT.pkl', 'rb')))
                 kf = KFold(n_splits=10, shuffle=True, random_state=random_state)
                 l1, l2 = 'Dorsal', 'Ventral'
                 lr = 10**-3
@@ -497,15 +497,15 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
 
             elif exp_type == 'E_vs_N':
                 if conditions_to_pred == 'alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,0:1])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,0:1])
                 elif conditions_to_pred == 'D':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,1:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
                 elif conditions_to_pred == 'D+alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,0:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,0:2])
                 else:
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb')))
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb')))
 
-                y_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'rb')))
+                y_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPy_DeepSPT.pkl', 'rb')))
                 kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=random_state)
                 l1, l2 = 'EEA1', 'NPC1'
                 lr = 10**-3
@@ -697,7 +697,7 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
                 'N: {} tracks, conf. threshold{} \nAccuracy: {:.2f} {:.2f}, F1-score: {:.3f}'.format(
                     np.sum(N_test), conf_threshold, np.mean(np.array(test_acc_all)*100), np.std(np.array(test_acc_all)*100, ddof=1), f1_), size=16)
             plt.tight_layout()
-            plt.savefig('deepspt_results/figures/{}_{}_confusion_matrix.pdf'.format(exp_type, conditions_to_pred),
+            plt.savefig('../deepspt_results/figures/{}_{}_confusion_matrix.pdf'.format(exp_type, conditions_to_pred),
                         pad_inches=0.2, bbox_inches='tight')
             plt.show()
             try:
@@ -726,14 +726,14 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
         results_dict_uncertaintracks[exp_type] = [proba_all, pred_all, X_test_idx_order]
         results_dict[exp_type] = [mean_acc, std_acc, N_all, pred_TP_all, pred_TN_all, pred_TP_all_std, pred_TN_all_std]
 
-    pickle.dump(results_dict_uncertaintracks, open('deepspt_results/{}results_dict_uncertaintracks.pkl'.format(conditions_to_pred), 'wb'))
-    pickle.dump(results_dict, open('deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred), 'wb'))
+    pickle.dump(results_dict_uncertaintracks, open('../deepspt_results/{}results_dict_uncertaintracks.pkl'.format(conditions_to_pred), 'wb'))
+    pickle.dump(results_dict, open('../deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred), 'wb'))
 
 # %%
 
 # pred as above but not cell by cell cross validation
 
-
+import torch
 from sklearn.model_selection import LeaveOneGroupOut
 
 results_dict_per_cell = {}
@@ -749,17 +749,17 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
         for conf_threshold in [0.5, 0.6, 0.7, 0.8, 0.9]:
             print('conditions_to_pred', conditions_to_pred)
             if exp_type == 'ap2':
-                exp_groups = pickle.load(open('deepspt_results/analytics/AP2_expname.pkl', 'rb'))
-                FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,1:2])
+                exp_groups = pickle.load(open('../deepspt_results/analytics/AP2_expname_DeepSPT.pkl', 'rb'))
+                FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
                 if conditions_to_pred == 'alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,0:1])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,0:1])
                 elif conditions_to_pred == 'D':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,1:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
                 elif conditions_to_pred == 'D+alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb'))[:,0:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,0:2])
                 else:
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPX.pkl', 'rb')))
-                y_all = np.array(pickle.load(open('deepspt_results/analytics/AP2_FPy.pkl', 'rb')))
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb')))
+                y_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPy_DeepSPT.pkl', 'rb')))
                 l1, l2 = 'Dorsal', 'Ventral'
                 lr = 10**-3
                 num_epochs =  10
@@ -768,17 +768,17 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
 
 
             elif exp_type == 'E_vs_N':
-                exp_groups = pickle.load(open('deepspt_results/analytics/expname_all_EEA1NPC1.pkl', 'rb'))
+                exp_groups = pickle.load(open('../deepspt_results/analytics/expname_all_EEA1NPC1_DeepSPT.pkl', 'rb'))
                 if conditions_to_pred == 'alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,0:1])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,0:1])
                 elif conditions_to_pred == 'D':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,1:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
                 elif conditions_to_pred == 'D+alpha':
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb'))[:,0:2])
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb'))[:,0:2])
                 else:
-                    FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb')))
+                    FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb')))
 
-                y_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'rb')))
+                y_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPy_DeepSPT.pkl', 'rb')))
                 l1, l2 = 'EEA1', 'NPC1'
                 lr = 10**-3
                 num_epochs =  10
@@ -914,15 +914,7 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
                 
                 test_acc_all.append(test_acc)
                 cm = confusion_matrix(y_true[y_pred!=-1], y_pred[y_pred!=-1], labels=[0,1], normalize='true')
-                
-                if cm[0,0]<0.01:
-                    print('test_acc', test_acc)
-                    print(cm[0,0])
-                    print(np.mean(y_true[y_true==0]==y_pred[y_true==0]))
-                    print(y_true[y_true==1]==y_pred[y_true==1])
-                    print(np.unique(y_true[y_pred!=-1], return_counts=1))
-                    print(np.unique(y_pred[y_pred!=-1], return_counts=1))
-                    print(np.unique(exp_groups[X_test_idx]))
+
 
                 pred_TP.append(np.mean(y_true[y_pred!=-1][y_true[y_pred!=-1]==0]==y_pred[y_pred!=-1][y_true[y_pred!=-1]==0]))
                 pred_FP.append(1-np.mean(y_true[y_pred!=-1][y_true[y_pred!=-1]==0]==y_pred[y_pred!=-1][y_true[y_pred!=-1]==0]))
@@ -968,7 +960,7 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
                 'N: {} tracks, conf. threshold{} \nAccuracy: {:.2f} {:.2f}, F1-score: {:.3f}'.format(
                     np.sum(N_test), conf_threshold, np.mean(np.array(test_acc_all)*100), np.std(np.array(test_acc_all)*100, ddof=1), f1_), size=16)
             plt.tight_layout()
-            plt.savefig('deepspt_results/figures/{}_{}_confthreshold{}_confusion_matrix_percell.pdf'.format(exp_type, conditions_to_pred, conf_threshold),
+            plt.savefig('../deepspt_results/figures/{}_{}_confthreshold{}_confusion_matrix_percell.pdf'.format(exp_type, conditions_to_pred, conf_threshold),
                         pad_inches=0.2, bbox_inches='tight')
             plt.show()
             try:
@@ -996,7 +988,7 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
 
         results_dict_per_cell[exp_type] = [mean_acc, std_acc, N_all, pred_TP_all, pred_TN_all, pred_TP_all_std, pred_TN_all_std]
 
-    pickle.dump(results_dict_per_cell, open('deepspt_results/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'wb'))
+    pickle.dump(results_dict_per_cell, open('../deepspt_results/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'wb'))
 
 
 # %%
@@ -1004,8 +996,8 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-conditions_to_pred = 'D'
-results_dict = pickle.load(open('deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred), 'rb'))
+conditions_to_pred = 'all'
+results_dict = pickle.load(open('../deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred), 'rb'))
 
 offset = [0.06, 0.1]
 
@@ -1123,7 +1115,7 @@ for i, k in enumerate(list(results_dict.keys())):
     print(k)
     plt.tight_layout()
 
-    plt.savefig('deepspt_results/figures/{}_ACCnN_vs_confthreshold_{}.pdf'.format(k, conditions_to_pred),
+    plt.savefig('../deepspt_results/figures/{}_ACCnN_vs_confthreshold_{}.pdf'.format(k, conditions_to_pred),
                 pad_inches=0.2, bbox_inches='tight')
 
 # %%
@@ -1132,8 +1124,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 conditions_to_pred = 'all'
-print(os.path.exists('deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred)))
-results_dict_per_cell = pickle.load(open('deepspt_results/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'rb'))
+print(os.path.exists('../deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred)))
+results_dict_per_cell = pickle.load(open('../deepspt_results/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'rb'))
 
 offset = [0.06, 0.1]
 
@@ -1251,16 +1243,18 @@ for i, k in enumerate(list(results_dict_per_cell.keys())):
     print(k)
     plt.tight_layout()
 
-    plt.savefig('deepspt_results/figures/{}_ACCnN_vs_confthreshold_percell_{}.pdf'.format(k, conditions_to_pred),
+    plt.savefig('../deepspt_results/figures/{}_ACCnN_vs_confthreshold_percell_{}.pdf'.format(k, conditions_to_pred),
                 pad_inches=0.2, bbox_inches='tight')
 # %%
 
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix, classification_report, f1_score
+import random 
+import torch
 
-
-# %%
-
-FP_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPX.pkl', 'rb')))
-y_all = np.array(pickle.load(open('deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'rb')))
+FP_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPX_DeepSPT.pkl', 'rb')))
+y_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPy_DeepSPT.pkl', 'rb')))
 kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=random_state)
 l1, l2 = 'EEA1', 'NPC1'
 conf_threshold = 0.6
@@ -1356,9 +1350,9 @@ for cvi, (X_train_idx, X_valid_idx) in enumerate(kf.split(X, y)):
             best_val_acc = val_acc
             best_model = model   
 
-            modelsavepath = 'EEA1_NPC1_results/precomputed_files/eea1npc1_classifier/'
-            torch.save(model.state_dict(), modelsavepath+'best_model.pt')
-            joblib.dump(scaler, modelsavepath+'scaler.pkl')
+            modelsavepath = '../deepspt_results/EEA1_NPC1_results/precomputed_files/eea1npc1_classifier/'
+            torch.save(model.state_dict(), modelsavepath+'best_model_DeepSPT.pt')
+            joblib.dump(scaler, modelsavepath+'scaler_DeepSPT.pkl')
 
         if epoch+1%2==0:
             print(f'Epoch {epoch+1}/{num_epochs}: Train Loss = {train_loss:.4f}, Val loss = {val_loss:.4f}, Val Acc = {val_acc:.4f}')

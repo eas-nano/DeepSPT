@@ -6,7 +6,9 @@ import os
 import random
 from global_config import globals
 from tqdm import tqdm
-
+import torch
+import sys
+sys.path.append('../')
 from deepspt_src import (add_features, load_3D_data, curate_3D_data_to_tracks, 
                   handle_compound_tracks, fuse_tracks, flatten_list)
 from utils.coloc_helpers import *
@@ -33,10 +35,12 @@ torch.cuda.manual_seed_all(seed)
 # '20230413_p5_p55_sCMOS_Jacob_Mari_Anand_Ricky'
 # '20230415_p5_p55_sCMOS_Jacob_Mari_Gu_Ricky' - # CS6+ has more laser power
 
-savepath = 'EEA1_NPC1_results/precomputed_files/coloc_results/coloc_rota'
-main_dirs = ['/scratch/jacobkh/20230413_p5_p55_sCMOS_Jacob_Mari_Anand_Ricky',
-             '/scratch/jacobkh/20230415_p5_p55_sCMOS_Jacob_Mari_Gu_Ricky',
-             '/scratch/jacobkh/20230419_p5_p55_sCMOS_Jacob_Mari_Anand_Ricky']
+savepath = '../deepspt_results/EEA1_NPC1_results/precomputed_files/coloc_results/coloc_rota'
+
+main_dirs = ['../_Data/LLSM_data/EEA1_NPC1_Rotavirus/20230413_p5_p55_sCMOS_Jacob_Mari_Anand_Ricky',
+             '../_Data/LLSM_data/EEA1_NPC1_Rotavirus/20230415_p5_p55_sCMOS_Jacob_Mari_Gu_Ricky',
+             '../_Data/LLSM_data/EEA1_NPC1_Rotavirus/20230419_p5_p55_sCMOS_Jacob_Mari_Anand_Ricky']
+
 SEARCH_PATTERN = '{}/**/ProcessedTracks.mat'
 OUTPUT_NAME = 'rotavirus'
 
@@ -500,6 +504,7 @@ print(len(tracks), len(track_labels), len(experiments))
 print(np.unique(track_labels, return_counts=True))
 print(len(EEA1_tracks_all), len(NPC1_tracks_all), len(Rota_tracks_all))
 
+# %%
 
 # %%
 

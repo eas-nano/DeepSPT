@@ -2,6 +2,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import sys
+sys.path.append('../')
 from deepspt_src import *
 import matplotlib.pyplot as plt
 import random
@@ -24,10 +26,9 @@ globals._parse({})
 datasets = ['SimDiff_dim2_ntraces300000_Drandom0.0001-0.5_dt1.0e+00_N5-600_B0.05-0.25_R5-25_subA0-0.7_superA1.3-2_Q1-16']
 methods = ['XYZ_SL_DP']
 the_data_is = '3D' if 'dim3' in datasets[0] else '2D'
-Unet_figpath = 'Unet_paper_figures/'
 
 # fingerprint things
-fp_datapath = '_Data/Simulated_diffusion_tracks/'
+fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'
 
 # define variables
@@ -58,26 +59,22 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 # find the model
-modelpath = 'Unet_results/mlruns/'
+modelpath = '../mlruns/'
 use_mlflow = False
 modeldir = '3'
 
 # find the model
 if use_mlflow: # bit troublesome if not on same machine/server
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
-    def find_models_for_from_path(path):
-        # load from path
-        files = sorted(glob(path+'/*/*_UNETmodel.torch', recursive=True))
-        return files
     # not sorted tho
     if dim==2:
         modeldir = '3'
     elif dim==3:
         modeldir = '36'
-    path = 'mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
 
 print('Find models')
@@ -85,9 +82,9 @@ best_models_sorted
 
 # %%
 # Prep data
-figpath = '/Insulin/figures/'
-datapath = 'Insulin/data_HeLa/'
-save_path = 'Insulin/predictions/'
+figpath = '/deepspt_results/figures/'
+datapath = '../_Data/Insulin/data_HeLa/'
+save_path = datapath
 
 Monomer = ['Monomer_new/lys/bio_1/640', 'Monomer_new/lys/bio_2/640'] #22
 
@@ -169,11 +166,10 @@ i = 2141
 print (i)
 # 2806 1881 2628 2141
 
-plot_diffusion(tracks[i], ensemble_pred[i], savename='insulin_SI_figs/track'+str(i))
+plot_diffusion(tracks[i], ensemble_pred[i], savename='../deepspt_results/insulin_SI_figs_track'+str(i))
 timepoint_confidence_plot(ensemble_score[i])
 
 
-# %%
 def global_difftype_occupancy_piechart(pred_argmax, savename=''):
     difftypes = ['Normal ', 'Directed ', 'Confined ', 'Subdiffusive ']
     color_list = ['blue', 'red', 'green', 'darkorange']
@@ -199,7 +195,7 @@ def global_difftype_occupancy_piechart(pred_argmax, savename=''):
 """ difftype occupancy pie chart and TDP diffusion"""
 m1_norm_trans_dict, _, _ = global_transition_probs(ensemble_pred)
 global_difftype_occupancy_piechart(ensemble_pred)
-behavior_TDP(ensemble_pred, m1_norm_trans_dict, savename='insulin_SI_figs/tTDP_monomer.pdf')
+behavior_TDP(ensemble_pred, m1_norm_trans_dict, savename='../deepspt_results/insulin_SI_figs_tTDP_monomer.pdf')
 print(PROJECT_NAMES)
 
 # %%

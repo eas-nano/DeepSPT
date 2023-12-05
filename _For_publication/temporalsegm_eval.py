@@ -1,6 +1,8 @@
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+sys.path.append('../')
 from deepspt_src import *
 import matplotlib.pyplot as plt
 import random
@@ -34,13 +36,13 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
-device = globals.device
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 use_mlflow = False
 # find the model
 if use_mlflow: # bit troublesome if not on same machine/server
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
     # not sorted tho
@@ -48,13 +50,13 @@ else:
         modeldir = '3'
     elif dim==3:
         modeldir = '36'
-    path = 'mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
 
 
 """Evaluate on independent test set"""
 
-datapath = '_Data/Simulated_diffusion_tracks/'
+datapath = '../_Data/Simulated_diffusion_tracks/'
 
 if dim==2:
     # R = 7-25
@@ -78,10 +80,11 @@ print(X_to_eval[0].shape)
 print(np.array(y_to_eval[0]).shape)
 
 """Load or pred independent test data"""
-savepath = 'Unet_results/predictions/'
-savename = 'Sim_data_dim'+str(dim)+'_results_mldir'+best_models_sorted[0].split('/')[0]+'_'+filenames_X[0]+'.pkl'
+savepath = '../deepspt_results/predictions/'
+savename = 'Sim_data_dim'+str(dim)+'_'+filenames_X[0]
+
 results_dict = load_or_pred_for_simdata(X_to_eval, y_to_eval, globals, savepath, savename, best_models_sorted,
-                                        filenames_X, filenames_y, min_max_len=max_len, dim=dim)
+                                        filenames_X, filenames_y, min_max_len=max_len, dim=dim, device=device,)
 
 #thresholded_acc_idx = get_ids_by_acc_threshold(acc, acc_threshold = 0, above=True)
 ensemble_pred = results_dict['ensemble']
@@ -122,19 +125,18 @@ f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1-score: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 model_used = 'Ensemble_mldir'+best_models_sorted[0].split('/')[0]
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/cleandiff_confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
+plt.savefig('../deepspt_results/figures/cleandiff_confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
 plt.show()
 
 
 # %%
-savepath = 'Unet_results/predictions/'
-savename_temp = 'Sim_data_dim'+str(dim)+'_results_tempscaled_mldir'+best_models_sorted[0].split('/')[0]+'_'+filenames_X[0]+'.pkl'
+savepath = '../deepspt_results/predictions/'
+savename_temp = 'Sim_data_dim'+str(dim)+'tempscaled_'+filenames_X[0]
 temperature = 3.8537957365297553
-
 
 results_dict_temp = load_or_create_TempPred(savepath, savename_temp, best_models_sorted, temperature,
                                        datapath, filenames_X[0], filenames_y[0], globals,
-                                       features=['XYZ','SL','DP'])
+                                       features=['XYZ','SL','DP'], device=device, dim=dim)
 
 ensemble_pred_temp = results_dict_temp['ensemble']
 ensemble_score_temp = results_dict_temp['ensemble_score']
@@ -143,7 +145,7 @@ ensemble_score_temp = results_dict_temp['ensemble_score']
 number_quantiles = 20
 print('temp', temperature)
 print(len(ensemble_score_temp), len(y_to_eval))
-savename = 'Unet_results/figures/temp_cali_reliability_mldir'+best_models_sorted[0].split('/')[0]
+savename = '../deepspt_results/figures/temp_cali_reliability_mldir'+best_models_sorted[0].split('/')[0]
 reliability_plot(ensemble_score_temp, y_to_eval, number_quantiles = 20, savename=savename)
 reliability_plot(ensemble_score, y_to_eval, number_quantiles = 20, savename=savename)
 
@@ -152,10 +154,10 @@ reliability_plot(ensemble_score, y_to_eval, number_quantiles = 20, savename=save
 i = 16008
 timepoint_confidence_plot(ensemble_score[i])
 
-savename = 'deepspt_results/figures/DeepSPTpred_confidence_{}'.format(i)
+savename = '../deepspt_results/figures/DeepSPTpred_confidence_{}'.format(i)
 timepoint_confidence_plot(ensemble_score_temp[i], savename=savename)
 
-savename = 'deepspt_results/figures/simGT_DeepSPTpred_{}'.format(i)
+savename = '../deepspt_results/figures/simGT_DeepSPTpred_{}'.format(i)
 compare_pred2sim_diffusion(X_to_eval[i][:,1], X_to_eval[i][:,2], 
 y_to_eval[i], ensemble_pred[i], savename=savename)
 
@@ -163,10 +165,10 @@ i = 15909
 
 print(i)
 timepoint_confidence_plot(ensemble_score[i])
-savename = 'deepspt_results/figures/DeepSPTpred_confidence_{}'.format(i)
+savename = '../deepspt_results/figures/DeepSPTpred_confidence_{}'.format(i)
 timepoint_confidence_plot(ensemble_score_temp[i], savename=savename)
 
-savename = 'deepspt_results/figures/simGT_DeepSPTpred_{}'.format(i)
+savename = '../deepspt_results/figures/simGT_DeepSPTpred_{}'.format(i)
 compare_pred2sim_diffusion(X_to_eval[i][:,0], X_to_eval[i][:,2], 
 y_to_eval[i], ensemble_pred[i], savename=savename)
 
@@ -190,7 +192,7 @@ for acci in range(len(ylen)):
               np.std(acc), np.median(acc)))
     model_used = 'Ensemble_mldir'+best_models_sorted[0].split('/')[0]
     plt.tight_layout()
-    plt.savefig('deepspt_results/figures/hist_acc_{}'.format(acci)+datasets[0]+'_'+model_used+'.pdf')
+    plt.savefig('../deepspt_results/figures/hist_acc_{}'.format(acci)+datasets[0]+'_'+model_used+'.pdf')
 
 
 # %%
@@ -222,7 +224,7 @@ f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, \nF1-score: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 model_used = 'Ensemble_mldir'+best_models_sorted[0].split('/')[0]
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
+plt.savefig('../deepspt_results/figures/confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
 plt.show()
 
 # %%
@@ -267,7 +269,7 @@ f1_ = f1_score(flat_test_true_2class, flat_test_pred_2class, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1-score: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 model_used = 'Ensemble_mldir'+best_models_sorted[0].split('/')[0]
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/2class_confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
+plt.savefig('../deepspt_results/figures/2class_confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
 plt.show()
 print(classification_report(flat_test_true_2class, flat_test_pred_2class, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred_2class)==np.array(flat_test_true_2class)))
@@ -313,7 +315,7 @@ f1_ = f1_score(flat_test_true_3class, flat_test_pred_3class, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1-score: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 model_used = 'Ensemble_mldir'+best_models_sorted[0].split('/')[0]
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/3class_confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
+plt.savefig('../deepspt_results/figures/3class_confusion_matrix_'+datasets[0]+'_'+model_used+'.pdf')
 plt.show()
 print(classification_report(flat_test_true_3class, flat_test_pred_3class, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred_3class)==np.array(flat_test_true_3class)))

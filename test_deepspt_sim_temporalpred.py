@@ -7,7 +7,10 @@ from deepspt_src import *
 from global_config import globals
 import warnings
 from joblib import Parallel, delayed
+from sklearn.model_selection import GroupKFold
+from scipy.optimize import curve_fit
 warnings.filterwarnings("ignore")
+
 
 class ChangePointLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, 
@@ -41,6 +44,13 @@ class ChangePointLSTM(nn.Module):
         out = self.fc(out)  # Use the final output
         return out
     
+"""
+do the rolling deepSPT
+do rolling MSD
+
+compare accuracy and frame error
+
+"""
 # get consistent result
 seed = globals._parse({})
 
@@ -51,15 +61,37 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # variables
 n_per_clean_diff = 1 # gets multiplied by n_classes=4
 n_classes = 4 # number og diffusion types
-n_changing_traces = 50 # number of tracks
+n_changing_traces = 1000 # number of tracks
 random_D = True
 
+
+# Drandomranges_pairs = [
+#     [[4*10**-3,   8*10**-3],   [4*10**-3,   8*10**-3]],
+#     [[3.5*10**-3, 7.5*10**-3], [4.5*10**-3, 8.5*10**-3]],
+#     [[3*10**-3,   7*10**-3],   [5*10**-3,   9*10**-3]],
+#     [[2.5*10**-3, 6.5*10**-3], [5.5*10**-3, 9.5*10**-3]],
+#     [[2*10**-3,   6*10**-3],   [6*10**-3,   10*10**-3]],
+#     [[1.5*10**-3, 5.5*10**-3], [6.5*10**-3, 10.5*10**-3]],
+#     [[1*10**-3, 5*10**-3],     [7*10**-3,   11*10**-3]]
+#     ]
+
+# # Two populations of tracks with Ds due to stochasticity tracks may return lower D if computed 
+# Drandomranges_pairs = [[2*10**-3,   5*10**-3],   [5*10**-3,   9*10**-3]]
+# Nrange = [5,200] # length of tracks
+# Branges = [[0.05,0.25],[0.15,0.35]] # boundary geometry
+# Rranges = [[5,10],[8,17]] # relative active diffusion
+# subalpharanges = [[0.3,0.5], [0.5, 0.7]] # subdiffusion exponent
+# superalpharange = [1.3, 2] # superdiffusion exponent (not used for dir_motion='active')
+# Qrange = [6,16] # steps from diffusion to localization error ratio
+# Dfixed = 0.1 # fixed diffusion coefficient (not used for random_D=True)
+# dir_motion = 'active'
+
 # Two populations of tracks with Ds due to stochasticity tracks may return lower D if computed 
-Drandomranges_pairs = [[2*10**-3,   5*10**-3],   [5*10**-3,   9*10**-3]]
+Drandomranges_pairs = [[1*10**-3, 5*10**-3],     [7*10**-3,   11*10**-3]]
 Nrange = [5,200] # length of tracks
-Branges = [[0.05,0.25],[0.15,0.35]] # boundary geometry
-Rranges = [[5,10],[8,17]] # relative active diffusion
-subalpharanges = [[0.3,0.5], [0.5, 0.7]] # subdiffusion exponent
+Branges = [[0.05,0.25],[0.05,0.25]] # boundary geometry
+Rranges = [[5,12],[8,15]] # relative active diffusion
+subalpharanges = [[0.3,0.6], [0.4, 0.7]] # subdiffusion exponent
 superalpharange = [1.3, 2] # superdiffusion exponent (not used for dir_motion='active')
 Qrange = [6,16] # steps from diffusion to localization error ratio
 Dfixed = 0.1 # fixed diffusion coefficient (not used for random_D=True)
@@ -146,16 +178,14 @@ for i in range(len(changing_diffusion_list_all[:n_changing_traces])):
     glued_labels.append(
         np.concatenate((np.zeros(len(changing_diffusion_list_all[i])),
                         np.ones(len(changing_diffusion_list_all[i+n_changing_traces])))))
+
+
 # %%
 i = np.random.randint(len(glued_tracks))
 plt.plot(glued_tracks[i][:,0], glued_tracks[i][:,1],
          c='k')
 plt.scatter(glued_tracks[i][:,0], glued_tracks[i][:,1],
             c=glued_labels[i], zorder=10, s=10)
-
-# %%
-
-frame_change
 
 # %%
 
@@ -255,6 +285,7 @@ for train_index, test_all_index in gss.split(direct_idx, groups=y_groups):
         test_idx_final.append(direct_idx[test_all_index][test_index])
         val_idx_final.append(direct_idx[test_all_index][val_index])
 
+# %%
 # prep data
 X_padtoken = -1 # pre-pad tracks to get them equal length, -1 so that it is not confused with 0
 length_track = np.array([len(t) for t in timeseries_clean])
@@ -267,7 +298,7 @@ print(data_padded.shape, len(data_padded))
 
 # Train the model
 torch.manual_seed(0)
-num_epochs = 75 # need to be high (>50) for convergence
+num_epochs = 200 # need to be high (>50) for convergence
 Fold = 0 # placeholder for cross-validation fold
 
 # Training loop (takes a while if not on gpu)
@@ -283,7 +314,7 @@ starttime = datetime.datetime.now()
 for i in range(len(train_idx_final)):
 
     model = ChangePointLSTM(input_dim=40, 
-                            hidden_dim=10, 
+                            hidden_dim=40, 
                             num_layers=5, 
                             maxlens=maxlens,
                             bidirectional=True)
@@ -375,13 +406,14 @@ for i in range(len(train_idx_final)):
 
                 total_samples += targets.size(0)
                 for i, (p,t) in enumerate(zip(predicted, targets)):
+                    vl = val_length_track[i]
+
                     sgl, cp, v = find_segments(p[maxlens-vl:])
                     changepoint_pred.append(cp[-2])
 
                     sgl, cp, v = find_segments(t[maxlens-vl:])
                     changepoint_true.append(cp[-2])
 
-                    vl = val_length_track[i]
                     total_perc_correct.append((p[maxlens-vl:] == t[maxlens-vl:]).sum().item()/len(p[maxlens-vl:]))
                     recall_0 = torch.mean((p[maxlens-vl:][t[maxlens-vl:]==0]==0).float())
                     recall_0 = recall_0 if recall_0>0 else torch.tensor(0, device=device)
@@ -394,13 +426,15 @@ for i in range(len(train_idx_final)):
                 val_loss = criterion(outputs, targets)
                 total_val_loss += val_loss.item()
 
+            
             val_attempt = total_recall/total_samples
+            print(f'Epoch {epoch+1}/{num_epochs}, Validation Loss: {np.round(total_val_loss/len(val_loader),2)}, total_perc_correct: {np.round(np.mean(total_perc_correct),2), np.round(np.std(total_perc_correct, ddof=1),2)}, total_recall/total_samples: {val_attempt.item()}, frame error {np.mean(np.abs(np.array(changepoint_pred)-np.array(changepoint_true)))}')
             if val_attempt > best_val_loss:
                 best_val_loss = val_attempt
                 best_model = model
                 best_predicted, best_targets_pre = predicted, targets_pre
                 torch.save(best_model.state_dict(), 'deepspt_results/analytics/usage_ex2_GRU_CVfold{}.pt'.format(Fold))
-                print(f'Epoch {epoch+1}/{num_epochs}, Validation Loss: {np.round(total_val_loss/len(val_loader),2)}, total_perc_correct: {np.round(np.mean(total_perc_correct),2), np.round(np.std(total_perc_correct, ddof=1),2)}, total_recall/total_samples: {val_attempt.item()}, frame error {np.mean(np.abs(np.array(changepoint_pred)-np.array(changepoint_true)))}')
+                print(f'   Best Epoch {epoch+1}/{num_epochs}, Validation Loss: {np.round(total_val_loss/len(val_loader),2)}, total_perc_correct: {np.round(np.mean(total_perc_correct),2), np.round(np.std(total_perc_correct, ddof=1),2)}, total_recall/total_samples: {val_attempt.item()}, frame error {np.mean(np.abs(np.array(changepoint_pred)-np.array(changepoint_true)))}')
 
     for ti, (inputs, targets) in tqdm(enumerate(test_loader)):
         targets_pre = targets
@@ -426,14 +460,8 @@ pickle.dump(test_probs_list, open('deepspt_results/analytics/usage_ex2_test_prob
 pickle.dump(X_test_idx_all, open('deepspt_results/analytics/usage_ex2_Xtest_idx_all.pkl', 'wb'))
 
 # %%
-import pickle
-import sys
-sys.path.append('../')
-from deepspt_src import find_segments
-import matplotlib.pyplot as plt
-import numpy as np
 
-
+# evaluate DeepSPT
 acc = pickle.load(open('deepspt_results/analytics/usage_ex2_testacc.pkl', 'rb'))
 test_outputs_list = pickle.load(open('deepspt_results/analytics/usage_ex2_test_outputs.pkl', 'rb'))
 test_targets_list = pickle.load(open('deepspt_results/analytics/usage_ex2_test_targets.pkl', 'rb'))
@@ -507,4 +535,124 @@ ax[1].set_aspect('equal')
 plt.tight_layout()
 plt.show()
 
+# %%
+
+# fun with umap
+import umap
+
+# fit timeseries_clean with umap
+umap_model = umap.UMAP(
+    n_neighbors=10, 
+    min_dist=.1, 
+    metric='euclidean', 
+    random_state=42)
+
+
+umap_model.fit(timeseries_clean[i])
+
+embedding = umap_model.transform(timeseries_clean[i])
+embedding.shape
+
+
+plt.scatter(embedding[:, 0], 
+            embedding[:, 1], 
+            c=glued_labels[i], 
+            s=10, cmap='Spectral')
+
+# %%
+
+# test rolling MSD and RF classifier
+
+rolling_msd_series = [t[:, :2] for t in timeseries_clean]
+
+i = np.random.randint(len(timeseries_clean))
+plt.scatter(rolling_msd_series[i][:, 0], 
+            rolling_msd_series[i][:, 1], 
+            c=glued_labels[i], 
+            s=10, cmap='Spectral')
+
+# linear classifier on rolling_msd_series to predict glued_labels
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+
+# split train and test from data_padded into index
+
+original_trackidx = [np.repeat(i, len(timeseries_clean[i])) for i in range(len(timeseries_clean))]
+
+acc_all = []
+pred_all = []
+true_all = []
+y_original_all = []
+for i in range(len(train_idx_final)):
+    X_train_idx = train_idx_final[i]
+    X_test_idx = test_idx_final[i]
+    X_val_idx = val_idx_final[i]
+
+    X_train = np.vstack(rolling_msd_series[X_train_idx])
+    X_val = np.vstack(rolling_msd_series[X_val_idx])
+    X_test = np.vstack(rolling_msd_series[X_test_idx])
+
+    original_trackidx_test = np.hstack(np.array(original_trackidx)[X_test_idx])
+
+    y_train = np.hstack(np.array(glued_labels)[X_train_idx])
+    y_val = np.hstack(np.array(glued_labels)[X_val_idx])
+    y_test = np.hstack(np.array(glued_labels)[X_test_idx])
+
+    print(X_train.shape, y_train.shape)
+    clf = RandomForestClassifier(max_depth=2, random_state=0).fit(X_train, y_train)
+    pred_all.append(clf.predict(X_test))
+    true_all.append(y_test)
+    y_original_all.append(original_trackidx_test)
+    acc_all.append(clf.score(X_test, y_test))
+    print(clf.score(X_test, y_test))
+
+np.mean(acc_all), np.std(acc_all, ddof=1)
+
+# %%
+pred_per_track = []
+true_per_track = []
+for i in np.unique(np.hstack(y_original_all)):
+    pred_per_track.append(np.hstack(pred_all)[np.hstack(y_original_all)==i])
+    true_per_track.append(np.hstack(true_all)[np.hstack(y_original_all)==i])
+
+for i in range(len(pred_per_track)):
+    assert len(pred_per_track[i])==len(true_per_track[i])
+    assert len(pred_per_track[i])==len(timeseries_clean[i])
+
+
+test_changepoint_pred = []
+test_changepoint_true = []
+for i in range(len(pred_per_track)):
+    sgl, cp, v = find_segments(pred_per_track[i])
+    test_changepoint_pred.append(cp[-2])
+
+    sgl, cp, v = find_segments(true_per_track[i])
+    test_changepoint_true.append(cp[-2])
+
+acc = [np.mean(pred_per_track[i]==true_per_track[i]) for i in range(len(pred_per_track))]
+frame_error = np.abs(np.array(test_changepoint_pred)-np.array(test_changepoint_true))
+MAE_frame = np.mean(frame_error)
+MedianAE_frame = np.median(frame_error)
+print('MAE_frame', MAE_frame, 'MedianAE_frame', MedianAE_frame)
+
+plt.figure()
+plt.title('True vs predicted changepoint')
+plt.scatter(test_changepoint_true, test_changepoint_pred)
+plt.xlabel('True changepoint')
+plt.ylabel('Predicted changepoint')
+plt.show()
+
+plt.figure()
+plt.title('Absolute frame error')
+plt.hist(frame_error, bins=50, range=(0, np.max(frame_error)))
+plt.ylabel('Frequency')
+plt.xlabel('Absolute frame error')
+plt.show()
+
+plt.figure()
+plt.title('Accuracy (percentage correct per track)')
+plt.hist(acc, bins=50, range=(0, 1))
+plt.ylabel('Frequency')
+plt.xlabel('Accuracy')
+plt.show()
 # %%

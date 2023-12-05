@@ -1,8 +1,10 @@
 # %%
-from Unet_mlflow_utils.convenience_functions import find_experiments_by_tags,\
+from deepspt_mlflow_utils.convenience_functions import find_experiments_by_tags,\
                                                make_experiment_name_from_tags
 from global_config import globals
 from torch.utils.data import DataLoader
+import sys
+sys.path.append('../')
 from deepspt_src import *
 import numpy as np
 import datetime
@@ -41,7 +43,7 @@ batch_size = globals.batch_size
 shuffle = globals.shuffle
 
 # model variables
-modelname = 'Unet'
+modelname = 'deepspt_tempsegm'
 
 init_channels = globals.init_channels # number of initial channels in model - these will multiply with channel_multiplier during encoding
 channel_multiplier = globals.channel_multiplier # channel multiplier size
@@ -129,7 +131,7 @@ for i, seed in enumerate(globals.seeds):
     train_loader = DataLoader(D_train, batch_size = batch_size, shuffle = shuffle)
     val_loader = DataLoader(D_val, batch_size = batch_size)
 
-    path ='Unet_results/mlruns/'+str(experiment_id)+'/'+str(mlflow.active_run().info.run_id)+'/'
+    path ='../mlruns/'+str(experiment_id)+'/'+str(mlflow.active_run().info.run_id)+'/'
     cv_indices_path = os.path.join(path, 'CV_indices')
     if not os.path.exists(cv_indices_path): 
         os.makedirs(cv_indices_path)

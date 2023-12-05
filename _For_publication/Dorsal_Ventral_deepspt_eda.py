@@ -4,6 +4,8 @@ import numpy as np
 from scipy.spatial import ConvexHull
 import pickle 
 import numpy as np
+import sys
+sys.path.append('../')
 from deepspt_src import *
 from global_config import globals
 import matplotlib.pyplot as plt
@@ -146,7 +148,7 @@ torch.cuda.manual_seed_all(seed)
 
 # Prep data
 # Define where to find experiments
-main_dir = '/scratch/Marilina/20220810_p5_p55_sCMOS_Mari_Rota'
+main_dir = '../_Data/LLSM_data/Singlelabeled_Rotavirus_AP2/20220810_p5_p55_sCMOS_Mari_Rota'
 SEARCH_PATTERN = '{}/**/ProcessedTracks.mat'
 OUTPUT_NAME = 'rotavirus'
 _input = SEARCH_PATTERN.format(main_dir)
@@ -206,7 +208,7 @@ t1 = datetime.datetime.now()
 print(t1)
 
 ch_cam_name = 'ch488nmCamA'
-results = Parallel(n_jobs=30)(
+results = Parallel(n_jobs=5)(
                 delayed(parallel_loader)(file, ch_cam_name=ch_cam_name) 
                                          for file in files_curated
                 if use_file(file, ch_cam_name=ch_cam_name))
@@ -386,14 +388,14 @@ device = 'cpu'
 
 # find the model
 dir_name = ''
-modelpath = 'Unet_results/mlruns/'
+modelpath = '../mlruns/'
 modeldir = '36'
 use_mlflow = False
 
 # find the model
 if use_mlflow:
     import mlflow
-    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("Unet_results", "mlruns")))
+    mlflow.set_tracking_uri('file:'+join(os.getcwd(), join("", "mlruns")))
     best_models_sorted = find_models_for(datasets, methods)
 else:
     def find_models_for_from_path(path):
@@ -402,11 +404,11 @@ else:
         return files
 
     # not sorted tho
-    path = '/nfs/datasync4/jacobkh/SPT/mlruns/{}'.format(modeldir)
+    path = '../mlruns/{}'.format(modeldir)
     best_models_sorted = find_models_for_from_path(path)
     print(best_models_sorted)
 
-if True: #not os.path.exists(dir_name+'deepspt_results/analytics/RotaEEA1NPC1_ensemble_score.pkl'):
+if not os.path.exists(dir_name+'../deepspt_results/analytics/RotaEEA1NPC1_ensemble_score.pkl'):
     files_dict = {}
     for modelname in best_models_sorted:
         if use_mlflow:
@@ -426,12 +428,14 @@ if True: #not os.path.exists(dir_name+'deepspt_results/analytics/RotaEEA1NPC1_en
         ensemble_score = files_dict['ensemble_score']
         ensemble_pred = [np.argmax(files_dict['ensemble_score'][i], axis=0) for i in range(len(files_dict['ensemble_score']))]
 
-    pickle.dump(ensemble_score, open(dir_name+'deepspt_results/analytics/RotaEEA1NPC1_ensemble_score.pkl', 'wb'))
-    pickle.dump(ensemble_pred, open(dir_name+'deepspt_results/analytics/RotaEEA1NPC1_ensemble_pred.pkl', 'wb'))
+    pickle.dump(ensemble_score, open(dir_name+'../deepspt_results/analytics/AP2_ensemble_score.pkl', 'wb'))
+    pickle.dump(ensemble_pred, open(dir_name+'../deepspt_results/analytics/AP2_ensemble_pred.pkl', 'wb'))
 else:
-    ensemble_score = pickle.load(open(dir_name+'deepspt_results/analytics/RotaEEA1NPC1_ensemble_score.pkl', 'rb'))
-    ensemble_pred = pickle.load(open(dir_name+'deepspt_results/analytics/RotaEEA1NPC1_ensemble_pred.pkl', 'rb'))
+    ensemble_score = pickle.load(open(dir_name+'../deepspt_results/analytics/AP2_ensemble_score.pkl', 'rb'))
+    ensemble_pred = pickle.load(open(dir_name+'../deepspt_results/analytics/AP2_ensemble_pred.pkl', 'rb'))
 ensemble_pred = np.array(ensemble_pred)
+
+ensemble_pred.shape
 
 # %%
 
@@ -582,7 +586,7 @@ on_glass = []
 spatial_label = []
 print(dist_to_cs_tracks_all)
 for i in range(len(dist_to_cs_tracks_all)):
-    d = np.mean(dist_to_cs_tracks_all[i]>.05)
+    d = np.mean(dist_to_cs_tracks_all[i]>.5)
     if d>0.2:
         spatial_label.append(1)
         above_glass.append(ensemble_pred[i])
@@ -611,12 +615,12 @@ plt.legend(loc='upper left')
 plt.xticks(np.arange(4), ['Normal', 'Directed', 'Confined', 'Subdiffusive'])
 plt.ylabel('Time (%track)')
 
-plt.savefig('deepspt_results/figures/AP2_Ventral_vs_Dorsal_diffusion_barplot.pdf',
+plt.savefig('../deepspt_results/figures/AP2_Ventral_vs_Dorsal_diffusion_barplot.pdf',
             dpi=300, bbox_inches='tight', pad_inches=0.5)   
 
 # %%
 
-fp_datapath = '_Data/Simulated_diffusion_tracks/'
+fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'
 dim = 3
 dt = 4
@@ -635,7 +639,7 @@ exp_idx = 1
 experiments = np.unique(expname_all)
 spatial_label_exp = []
 for d in np.array(dist_to_cs_tracks_all)[expname_all==experiments[exp_idx]]:
-    d_check = np.mean(d>.1)
+    d_check = np.mean(d>.5)
     if d_check>0.2:
         spatial_label_exp.append(1)
     else:
@@ -683,13 +687,13 @@ for idx,t in enumerate(tracks_exp[spatial_label_exp==1]):
     ax[0].set_ylabel('y (\u03BCm)')
 
 plt.tight_layout()
-plt.savefig('deepspt_results/figures/AP2_2Dtracks_diffcoloured_exp{}.pdf'.format(exp_idx),
+plt.savefig('../deepspt_results/figures/AP2_2Dtracks_diffcoloured_exp{}.pdf'.format(exp_idx),
             pad_inches=0.5, bbox_inches='tight')
 
 print(FP_all.shape, len(spatial_label_all_exp), expname_all.shape, len(tracks_all))
 
-pickle.dump(FP_all, open('deepspt_results/analytics/AP2_FPX.pkl', 'wb'))
-pickle.dump(spatial_label_all_exp, open('deepspt_results/analytics/AP2_FPy.pkl', 'wb'))
-pickle.dump(tracks_all, open('deepspt_results/analytics/AP2_tracks.pkl', 'wb'))
-pickle.dump(expname_all, open('deepspt_results/analytics/AP2_expname.pkl', 'wb'))
+pickle.dump(FP_all, open('../deepspt_results/analytics/AP2_FPX.pkl', 'wb'))
+pickle.dump(spatial_label_all_exp, open('../deepspt_results/analytics/AP2_FPy.pkl', 'wb'))
+pickle.dump(tracks_all, open('../deepspt_results/analytics/AP2_tracks.pkl', 'wb'))
+pickle.dump(expname_all, open('../deepspt_results/analytics/AP2_expname.pkl', 'wb'))
 # %%

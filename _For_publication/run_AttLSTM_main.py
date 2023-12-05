@@ -327,7 +327,7 @@ print(opt.n_class)
 # Load data
 import pickle
 
-datapath = globals.datapath
+datapath = '../_Data/Simulated_diffusion_tracks/'
 filename_y = '2022424512_SimDiff_dim2_Drandom0.0001-0.5_dt1.0e+00_N5-600_B0.05-0.25_R5-25_subA0-0.7_superA1.3-2_Q1-16_timeresolved_y.pkl'
 filename_X = '2022424512_SimDiff_dim2_ntraces300000_Drandom0.0001-0.5_dt1.0e+00_N5-600_B0.05-0.25_R5-25_subA0-0.7_superA1.3-2_Q1-16_X.pkl'
 
@@ -412,20 +412,6 @@ from sklearn.metrics import (roc_auc_score, roc_curve,
                              precision_recall_curve, 
                              classification_report,
                              confusion_matrix)
-from deepspt_src import (create_fingerprint_track, 
-                  add_features, 
-                  find_models_for,
-                  find_models_for_from_path,
-                  load_UnetModels,
-                  load_UnetModels_directly,
-                  make_preds,
-                  ensemble_scoring,
-                  postprocess_pred,
-                  plot_diffusion,
-                  timepoint_confidence_plot,
-                  global_transition_probs,
-                  behavior_TDP,
-                  find_segments)
 import os
 import torch
 
@@ -518,7 +504,7 @@ from sklearn.metrics import f1_score
 f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 plt.tight_layout()
-plt.savefig('Unet_paper_figures/paper_figures/4class_BiLSTM_confusion_matrix.pdf')
+plt.savefig('../deepspt_results/figures/4class_BiLSTM_confusion_matrix.pdf')
 plt.show()
 print(classification_report(flat_test_true, flat_test_pred, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred)==np.array(flat_test_true)))
@@ -551,7 +537,7 @@ from sklearn.metrics import f1_score
 f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 plt.tight_layout()
-plt.savefig('Unet_paper_figures/paper_figures/3class_BiLSTM_confusion_matrix.pdf')
+plt.savefig('../deepspt_results/figures/3class_BiLSTM_confusion_matrix.pdf')
 plt.show()
 print(classification_report(flat_test_true, flat_test_pred, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred)==np.array(flat_test_true)))
@@ -584,7 +570,7 @@ from sklearn.metrics import f1_score
 f1_ = f1_score(flat_test_true, flat_test_pred, average='macro')
 plt.title('N: {}, Accuracy: {:.3f}, F1: {:.3f}'.format(len(flat_test_true), flat_acc, f1_), size=24)
 plt.tight_layout()
-plt.savefig('Unet_paper_figures/paper_figures/2class_BiLSTM_confusion_matrix.pdf')
+plt.savefig('../deepspt_results/paper/2class_BiLSTM_confusion_matrix.pdf')
 plt.show()
 print(classification_report(flat_test_true, flat_test_pred, target_names=diffs))
 print('Accuracy:', np.mean(np.array(flat_test_pred)==np.array(flat_test_true)))

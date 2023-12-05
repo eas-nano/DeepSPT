@@ -1,3 +1,4 @@
+# %%
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
@@ -44,13 +45,13 @@ class ChangePointLSTM(nn.Module):
 
 if __name__ == '__main__':
 
-    _use_dual_labelling = True
+    _use_dual_labelling = False
 
     if _use_dual_labelling:
-        timeseries_clean = pickle.load(open('deepspt_results/analytics/timeseries_clean.pkl', 'rb'))
-        frame_change_pruned = pickle.load(open('deepspt_results/analytics/frame_change_pruned.pkl', 'rb'))
-        length_track = pickle.load(open('deepspt_results/analytics/length_track.pkl', 'rb'))
-        uniq_like_pairs = pickle.load(open('deepspt_results/analytics/uniq_like_pairs.pkl', 'rb'))
+        timeseries_clean = pickle.load(open('../deepspt_results/analytics/timeseries_clean_DeepSPT.pkl', 'rb'))
+        frame_change_pruned = pickle.load(open('../deepspt_results/analytics/frame_change_pruned_DeepSPT.pkl', 'rb'))
+        length_track = pickle.load(open('../deepspt_results/analytics/length_track_DeepSPT.pkl', 'rb'))
+        uniq_like_pairs = pickle.load(open('../deepspt_results/analytics/uniq_like_pairs_DeepSPT.pkl', 'rb'))
         
         import networkx as nx
         G = nx.Graph()
@@ -89,9 +90,9 @@ if __name__ == '__main__':
                     set(test_idx_final[i]).intersection(set(val_idx_final[i])))
 
     else:
-        timeseries_clean = pickle.load(open('deepspt_results/analytics/timeseries_clean560nm.pkl', 'rb'))
-        frame_change_pruned = pickle.load(open('deepspt_results/analytics/frame_change_pruned560nm.pkl', 'rb'))
-        length_track = pickle.load(open('deepspt_results/analytics/length_track560nm.pkl', 'rb'))
+        timeseries_clean = pickle.load(open('../deepspt_results/analytics/timeseries_clean560nm_DeepSPT.pkl', 'rb'))
+        frame_change_pruned = pickle.load(open('../deepspt_results/analytics/frame_change_pruned560nm_DeepSPT.pkl', 'rb'))
+        length_track = pickle.load(open('../deepspt_results/analytics/length_track560nm_DeepSPT.pkl', 'rb'))
         y_groups = np.array(range(len(timeseries_clean)))
 
         gss = GroupKFold(n_splits=5)
@@ -257,13 +258,13 @@ if __name__ == '__main__':
                     best_model = model
                     best_predicted, best_targets_pre = predicted, targets_pre
                     if _use_dual_labelling:
-                        torch.save(best_model.state_dict(), 'deepspt_results/analytics/best_model.pt')
-                        torch.save(best_model.state_dict(), 'deepspt_results/analytics/20230823_best_model_GRU_Duallabelled_CV{}.pt'.format(Fold))
+                        torch.save(best_model.state_dict(), '../deepspt_results/analytics/best_model.pt')
+                        torch.save(best_model.state_dict(), '../deepspt_results/analytics/20230823_best_model_GRU_Duallabelled_CV{}.pt'.format(Fold))
                     else:
-                        torch.save(best_model.state_dict(), 'deepspt_results/analytics/best_model560nm.pt')
-                        #torch.save(best_model.state_dict(), 'deepspt_results/analytics/20230702_best_model_GRU_560nm_CV{}.pt'.format(Fold))
-                    # pickle.dump(torch.mean(X_train, dim=0), open('deepspt_results/analytics/X_train_mean.pkl', 'wb'))
-                    # pickle.dump(torch.std(X_train, dim=0)+1, open('deepspt_results/analytics/X_train_std.pkl', 'wb'))
+                        torch.save(best_model.state_dict(), '../deepspt_results/analytics/best_model560nm.pt')
+                        #torch.save(best_model.state_dict(), '../deepspt_results/analytics/20230702_best_model_GRU_560nm_CV{}.pt'.format(Fold))
+                    # pickle.dump(torch.mean(X_train, dim=0), open('../deepspt_results/analytics/X_train_mean.pkl', 'wb'))
+                    # pickle.dump(torch.std(X_train, dim=0)+1, open('../deepspt_results/analytics/X_train_std.pkl', 'wb'))
                     #print(predicted.shape, targets_pre.shape, val_length_track.shape)
                     print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {total_val_loss/len(val_loader)}, Accuracy: {total_correct/total_samples, val_attempt}")
 
@@ -288,25 +289,25 @@ if __name__ == '__main__':
 
     acc = [np.mean(val_outputs[i]==val_targets[i]) for i in range(len(val_outputs))]
     if _use_dual_labelling:
-        pickle.dump(acc, open('deepspt_results/analytics/acc.pkl', 'wb'))
+        pickle.dump(acc, open('../deepspt_results/analytics/acc.pkl', 'wb'))
         print('len(val_outputs)', len(val_outputs))
-        pickle.dump(val_outputs, open('deepspt_results/analytics/val_outputs.pkl', 'wb'))
-        pickle.dump(val_targets, open('deepspt_results/analytics/val_targets.pkl', 'wb'))
-        pickle.dump(val_probs, open('deepspt_results/analytics/val_probs.pkl', 'wb'))
-        pickle.dump(X_test_idx_all, open('deepspt_results/analytics/X_test_idx_all.pkl', 'wb'))
-        pickle.dump(train_idx_check, open('deepspt_results/analytics/train_idx_check.pkl', 'wb'))
-        pickle.dump(test_idx_check, open('deepspt_results/analytics/test_idx_check.pkl', 'wb'))
-        pickle.dump(val_idx_check, open('deepspt_results/analytics/val_idx_check.pkl', 'wb'))
+        pickle.dump(val_outputs, open('../deepspt_results/analytics/val_outputs.pkl', 'wb'))
+        pickle.dump(val_targets, open('../deepspt_results/analytics/val_targets.pkl', 'wb'))
+        pickle.dump(val_probs, open('../deepspt_results/analytics/val_probs.pkl', 'wb'))
+        pickle.dump(X_test_idx_all, open('../deepspt_results/analytics/X_test_idx_all.pkl', 'wb'))
+        pickle.dump(train_idx_check, open('../deepspt_results/analytics/train_idx_check.pkl', 'wb'))
+        pickle.dump(test_idx_check, open('../deepspt_results/analytics/test_idx_check.pkl', 'wb'))
+        pickle.dump(val_idx_check, open('../deepspt_results/analytics/val_idx_check.pkl', 'wb'))
     else:
-        pickle.dump(acc, open('deepspt_results/analytics/acc560nm.pkl', 'wb'))
+        pickle.dump(acc, open('../deepspt_results/analytics/acc560nm.pkl', 'wb'))
         print('len(val_outputs)', len(val_outputs))
-        pickle.dump(val_outputs, open('deepspt_results/analytics/val_outputs560nm.pkl', 'wb'))
-        pickle.dump(val_targets, open('deepspt_results/analytics/val_targets560nm.pkl', 'wb'))
-        pickle.dump(val_probs, open('deepspt_results/analytics/val_probs560nm.pkl', 'wb'))
-        pickle.dump(X_test_idx_all, open('deepspt_results/analytics/X_test_idx_all560nm.pkl', 'wb'))
-        pickle.dump(train_idx_check, open('deepspt_results/analytics/train_idx_check560nm.pkl', 'wb'))
-        pickle.dump(test_idx_check, open('deepspt_results/analytics/test_idx_check560nm.pkl', 'wb'))
-        pickle.dump(val_idx_check, open('deepspt_results/analytics/val_idx_check560nm.pkl', 'wb'))
+        pickle.dump(val_outputs, open('../deepspt_results/analytics/val_outputs560nm.pkl', 'wb'))
+        pickle.dump(val_targets, open('../deepspt_results/analytics/val_targets560nm.pkl', 'wb'))
+        pickle.dump(val_probs, open('../deepspt_results/analytics/val_probs560nm.pkl', 'wb'))
+        pickle.dump(X_test_idx_all, open('../deepspt_results/analytics/X_test_idx_all560nm.pkl', 'wb'))
+        pickle.dump(train_idx_check, open('../deepspt_results/analytics/train_idx_check560nm.pkl', 'wb'))
+        pickle.dump(test_idx_check, open('../deepspt_results/analytics/test_idx_check560nm.pkl', 'wb'))
+        pickle.dump(val_idx_check, open('../deepspt_results/analytics/val_idx_check560nm.pkl', 'wb'))
 
     # %%
 
@@ -314,43 +315,56 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy as np
     import pickle
+    import sys
+    sys.path.append('../')
     from deepspt_src import find_segments
 
     _use_dual_labelling = True
     features_used = 'all' 
 
     if _use_dual_labelling:
-        timeseries_clean = pickle.load(open('deepspt_results/analytics/timeseries_clean.pkl', 'rb'))
-        frame_change_pruned = pickle.load(open('deepspt_results/analytics/frame_change_pruned.pkl', 'rb'))
-        frame_change_pruned_v2 = np.zeros(len(frame_change_pruned))
-        length_track = pickle.load(open('deepspt_results/analytics/length_track.pkl', 'rb'))
-        uncoating_tracks = pickle.load(open('deepspt_results/analytics/escape_tracks_all.pkl', 'rb'))
-        VP7uncoating_tracks = pickle.load(open('deepspt_results/analytics/VP7escape_tracks_all.pkl', 'rb'))
-        train_idx_check = pickle.load(open('deepspt_results/analytics/train_idx_check.pkl', 'rb'))
-        test_idx_check = pickle.load(open('deepspt_results/analytics/test_idx_check.pkl', 'rb'))
-        val_idx_check = pickle.load(open('deepspt_results/analytics/val_idx_check.pkl', 'rb'))
+        try:
+            timeseries_clean = pickle.load(open('../deepspt_results/analytics/timeseries_clean_DeepSPT.pkl', 'rb'))
+            frame_change_pruned = pickle.load(open('../deepspt_results/analytics/frame_change_pruned_DeepSPT.pkl', 'rb'))
+            frame_change_pruned_v2 = np.zeros(len(frame_change_pruned))
+            length_track = pickle.load(open('../deepspt_results/analytics/length_track_DeepSPT.pkl', 'rb'))
+            uncoating_tracks = pickle.load(open('../deepspt_results/analytics/escape_tracks_all_DeepSPT.pkl', 'rb'))
+            VP7uncoating_tracks = pickle.load(open('../deepspt_results/analytics/VP7escape_tracks_all_DeepSPT.pkl', 'rb'))
+            train_idx_check = pickle.load(open('../deepspt_results/analytics/train_idx_check.pkl', 'rb'))
+            test_idx_check = pickle.load(open('../deepspt_results/analytics/test_idx_check.pkl', 'rb'))
+            val_idx_check = pickle.load(open('../deepspt_results/analytics/val_idx_check.pkl', 'rb'))
+        except:
+            timeseries_clean = pickle.load(open('../deepspt_results/analytics/timeseries_clean.pkl', 'rb'))
+            frame_change_pruned = pickle.load(open('../deepspt_results/analytics/frame_change_pruned.pkl', 'rb'))
+            frame_change_pruned_v2 = np.zeros(len(frame_change_pruned))
+            length_track = pickle.load(open('../deepspt_results/analytics/length_track.pkl', 'rb'))
+            uncoating_tracks = pickle.load(open('../deepspt_results/analytics/escape_tracks_all.pkl', 'rb'))
+            VP7uncoating_tracks = pickle.load(open('../deepspt_results/analytics/VP7escape_tracks_all.pkl', 'rb'))
+            train_idx_check = pickle.load(open('../deepspt_results/analytics/train_idx_check.pkl', 'rb'))
+            test_idx_check = pickle.load(open('../deepspt_results/analytics/test_idx_check.pkl', 'rb'))
+            val_idx_check = pickle.load(open('../deepspt_results/analytics/val_idx_check.pkl', 'rb'))
     else:
-        timeseries_clean = pickle.load(open('deepspt_results/analytics/timeseries_clean560nm.pkl', 'rb'))
-        frame_change_pruned = pickle.load(open('deepspt_results/analytics/frame_change_pruned560nm.pkl', 'rb'))
-        frame_change_pruned_v2 = pickle.load(open('deepspt_results/analytics/frame_change_pruned560nm_v2.pkl', 'rb'))
-        length_track = pickle.load(open('deepspt_results/analytics/length_track560nm.pkl', 'rb'))
-        uncoating_tracks = pickle.load(open('deepspt_results/analytics/escape_tracks_all560nm.pkl', 'rb'))
-        train_idx_check = pickle.load(open('deepspt_results/analytics/train_idx_check560nm.pkl', 'rb'))
-        test_idx_check = pickle.load(open('deepspt_results/analytics/test_idx_check560nm.pkl', 'rb'))
-        val_idx_check = pickle.load(open('deepspt_results/analytics/val_idx_check560nm.pkl', 'rb'))
+        timeseries_clean = pickle.load(open('../deepspt_results/analytics/timeseries_clean560nm_DeepSPT.pkl', 'rb'))
+        frame_change_pruned = pickle.load(open('../deepspt_results/analytics/frame_change_pruned560nm_DeepSPT.pkl', 'rb'))
+        frame_change_pruned_v2 = pickle.load(open('../deepspt_results/analytics/frame_change_pruned560nm_v2_DeepSPT.pkl', 'rb'))
+        length_track = pickle.load(open('../deepspt_results/analytics/length_track560nm_DeepSPT.pkl', 'rb'))
+        uncoating_tracks = pickle.load(open('../deepspt_results/analytics/escape_tracks_all560nm_DeepSPT.pkl', 'rb'))
+        train_idx_check = pickle.load(open('../deepspt_results/analytics/train_idx_check560nm.pkl', 'rb'))
+        test_idx_check = pickle.load(open('../deepspt_results/analytics/test_idx_check560nm.pkl', 'rb'))
+        val_idx_check = pickle.load(open('../deepspt_results/analytics/val_idx_check560nm.pkl', 'rb'))
 
     if _use_dual_labelling:
-        acc = pickle.load(open('deepspt_results/analytics/acc.pkl', 'rb'))
-        val_outputs = pickle.load(open('deepspt_results/analytics/val_outputs.pkl', 'rb'))
-        val_targets = pickle.load(open('deepspt_results/analytics/val_targets.pkl', 'rb'))
-        val_probs = pickle.load(open('deepspt_results/analytics/val_probs.pkl', 'rb'))
-        X_test_idx_all = pickle.load(open('deepspt_results/analytics/X_test_idx_all.pkl', 'rb'))
+        acc = pickle.load(open('../deepspt_results/analytics/acc.pkl', 'rb'))
+        val_outputs = pickle.load(open('../deepspt_results/analytics/val_outputs.pkl', 'rb'))
+        val_targets = pickle.load(open('../deepspt_results/analytics/val_targets.pkl', 'rb'))
+        val_probs = pickle.load(open('../deepspt_results/analytics/val_probs.pkl', 'rb'))
+        X_test_idx_all = pickle.load(open('../deepspt_results/analytics/X_test_idx_all.pkl', 'rb'))
     else:
-        acc = pickle.load(open('deepspt_results/analytics/acc560nm.pkl', 'rb'))
-        val_outputs = pickle.load(open('deepspt_results/analytics/val_outputs560nm.pkl', 'rb'))
-        val_targets = pickle.load(open('deepspt_results/analytics/val_targets560nm.pkl', 'rb'))
-        val_probs = pickle.load(open('deepspt_results/analytics/val_probs560nm.pkl', 'rb'))
-        X_test_idx_all = pickle.load(open('deepspt_results/analytics/X_test_idx_all560nm.pkl', 'rb'))
+        acc = pickle.load(open('../deepspt_results/analytics/acc560nm.pkl', 'rb'))
+        val_outputs = pickle.load(open('../deepspt_results/analytics/val_outputs560nm.pkl', 'rb'))
+        val_targets = pickle.load(open('../deepspt_results/analytics/val_targets560nm.pkl', 'rb'))
+        val_probs = pickle.load(open('../deepspt_results/analytics/val_probs560nm.pkl', 'rb'))
+        X_test_idx_all = pickle.load(open('../deepspt_results/analytics/X_test_idx_all560nm.pkl', 'rb'))
     X_test_idx_all = np.hstack(X_test_idx_all)
 
     pred_change = []
@@ -378,9 +392,6 @@ if __name__ == '__main__':
     print('mae frame', np.median(mae_frame), np.mean(mae_frame))
     print('1', len(val_outputs), len(val_targets), len(pred_change), len(true_change))
 
-    print('mean error', np.mean(true_change-pred_change))
-    print('median error', np.median(true_change-pred_change))
-
     print('median abs error', np.median(np.abs(true_change-pred_change)))
     print('mean abs error', np.mean(np.abs(true_change-pred_change)))
 
@@ -396,14 +407,12 @@ if __name__ == '__main__':
     print('mean tp0', np.nanmean(tp0), 'mean tp1', np.nanmean(tp1))
     print('median tp0', np.nanmedian(tp0), 'median tp1', np.nanmedian(tp1))
 
-
-    
     # %%
 
     from sklearn.metrics import confusion_matrix, f1_score
     import seaborn as sns
     
-    fig_save_dir = 'deepspt_results/figures/'
+    fig_save_dir = '../deepspt_results/figures/'
     if _use_dual_labelling==False:
 
         fig, ax = plt.subplots(1,1, figsize=(4,4))
@@ -697,9 +706,9 @@ if __name__ == '__main__':
         fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=0.12, z=.7),
                                             center=dict(x=0, y=0., z=0),
                                             up=dict(x=0, y=0, z=1),))
-        fig.write_image('deepspt_results/figures/3Dplot_pred_{}.pdf'.format(idx))
+        fig.write_image('../deepspt_results/figures/3Dplot_pred_{}.pdf'.format(idx))
         fig.show()
-        print('deepspt_results/figures/3Dplot_pred_{}.pdf'.format(idx))
+        print('../deepspt_results/figures/3Dplot_pred_{}.pdf'.format(idx))
     #%%
 
     if _use_dual_labelling==True:
@@ -734,7 +743,7 @@ if __name__ == '__main__':
         
         plt.ylim(-.1,.2)
 
-        plt.savefig('deepspt_results/figures/1D_predplot_{}_features_{}.pdf'.format(idx, features_used)) 
+        plt.savefig('../deepspt_results/figures/1D_predplot_{}_features_{}.pdf'.format(idx, features_used)) 
 
     if _use_dual_labelling==True:
         val_probs = np.array(val_probs)
@@ -749,7 +758,7 @@ if __name__ == '__main__':
         plt.plot(val_probs_sm[idx][:,1], 'dimgrey', lw=3, label='After')
         plt.ylim(-.5, 1.5)
         plt.xlim(-5,len(val_probs_sm[idx][:,0])+5)
-        plt.savefig('deepspt_results/figures/1D_probabilityplot_{}_features_{}_v2.pdf'.format(idx, features_used)) 
+        plt.savefig('../deepspt_results/figures/1D_probabilityplot_{}_features_{}_v2.pdf'.format(idx, features_used)) 
    
     if _use_dual_labelling==True:
         # softmax valprobs
@@ -765,7 +774,7 @@ if __name__ == '__main__':
                     colors=['lightgrey', 'grey'], alpha=1)
         plt.ylim(-1,2)
         plt.title(idx)
-        plt.savefig('deepspt_results/figures/1D_probabilityplot_{}_features_{}.pdf'.format(idx, features_used)) 
+        plt.savefig('../deepspt_results/figures/1D_probabilityplot_{}_features_{}.pdf'.format(idx, features_used)) 
 
     # %%
 

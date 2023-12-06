@@ -162,11 +162,11 @@ tracks = np.array([t[:,:2] for t in tracks], dtype=object)
 
 tracks_with_dir_idx = [i for i, e in enumerate(ensemble_pred) if 0.3<np.mean(1==e)]
 
-i = 2141 
+i = 2628 
 print (i)
 # 2806 1881 2628 2141
 
-plot_diffusion(tracks[i], ensemble_pred[i], savename='../deepspt_results/insulin_SI_figs_track'+str(i))
+plot_diffusion(tracks[i], ensemble_pred[i], savename='../deepspt_results/Insulin/insulin_SI_figs_track'+str(i))
 timepoint_confidence_plot(ensemble_score[i])
 
 
@@ -195,7 +195,7 @@ def global_difftype_occupancy_piechart(pred_argmax, savename=''):
 """ difftype occupancy pie chart and TDP diffusion"""
 m1_norm_trans_dict, _, _ = global_transition_probs(ensemble_pred)
 global_difftype_occupancy_piechart(ensemble_pred)
-behavior_TDP(ensemble_pred, m1_norm_trans_dict, savename='../deepspt_results/insulin_SI_figs_tTDP_monomer.pdf')
+behavior_TDP(ensemble_pred, m1_norm_trans_dict, savename='../deepspt_results/Insulin/insulin_SI_figs_tTDP_monomer.pdf')
 print(PROJECT_NAMES)
 
 # %%

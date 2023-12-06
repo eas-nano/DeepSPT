@@ -45,7 +45,7 @@ class ChangePointLSTM(nn.Module):
 
 if __name__ == '__main__':
 
-    _use_dual_labelling = False
+    _use_dual_labelling = True
 
     if _use_dual_labelling:
         timeseries_clean = pickle.load(open('../deepspt_results/analytics/timeseries_clean_DeepSPT.pkl', 'rb'))
@@ -266,7 +266,7 @@ if __name__ == '__main__':
                     # pickle.dump(torch.mean(X_train, dim=0), open('../deepspt_results/analytics/X_train_mean.pkl', 'wb'))
                     # pickle.dump(torch.std(X_train, dim=0)+1, open('../deepspt_results/analytics/X_train_std.pkl', 'wb'))
                     #print(predicted.shape, targets_pre.shape, val_length_track.shape)
-                    print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {total_val_loss/len(val_loader)}, Accuracy: {total_correct/total_samples, val_attempt}")
+                    print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {total_val_loss/len(val_loader)}")
 
         import datetime
         starttime = datetime.datetime.now()
@@ -274,6 +274,7 @@ if __name__ == '__main__':
             targets_pre = targets
             inputs, targets = inputs.to(device), targets.to(device)
             
+            best_model.eval()
             test_outputs = best_model(inputs)
             _, test_predicted = torch.max(test_outputs.data, 2) 
             for i,(tp, tt, to) in enumerate(zip(test_predicted, targets, test_outputs)):

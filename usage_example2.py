@@ -366,7 +366,7 @@ for i in range(len(train_idx_final)):
             total_samples = 0
             changepoint_pred = []
             changepoint_true = []
-            for inputs, targets in val_loader:
+            for vi, (inputs, targets) in enumerate(val_loader):
                 targets_pre = targets
                 inputs, targets = inputs.to(device), targets.to(device)
                 
@@ -375,13 +375,15 @@ for i in range(len(train_idx_final)):
 
                 total_samples += targets.size(0)
                 for i, (p,t) in enumerate(zip(predicted, targets)):
+                    lower, upper = int(vi*val_batch_size), int((vi+1)*val_batch_size)
+                    vl = val_length_track[lower:upper][i]
+                    
                     sgl, cp, v = find_segments(p[maxlens-vl:])
                     changepoint_pred.append(cp[-2])
 
                     sgl, cp, v = find_segments(t[maxlens-vl:])
                     changepoint_true.append(cp[-2])
 
-                    vl = val_length_track[i]
                     total_perc_correct.append((p[maxlens-vl:] == t[maxlens-vl:]).sum().item()/len(p[maxlens-vl:]))
                     recall_0 = torch.mean((p[maxlens-vl:][t[maxlens-vl:]==0]==0).float())
                     recall_0 = recall_0 if recall_0>0 else torch.tensor(0, device=device)
@@ -409,7 +411,8 @@ for i in range(len(train_idx_final)):
         test_outputs = best_model(inputs)
         _, test_predicted = torch.max(test_outputs.data, 2) 
         for i,(tp, tt, to) in enumerate(zip(test_predicted, targets, test_outputs)):
-            tl = test_length_track[i]
+            lower, upper = int(ti*val_batch_size), int((ti+1)*val_batch_size)
+            tl = test_length_track[lower:upper][i]
             test_outputs_list.append(tp.cpu().detach().numpy()[maxlens-tl:])
             test_targets_list.append(tt.cpu().detach().numpy()[maxlens-tl:])
             test_probs_list.append(to.cpu().detach().numpy()[maxlens-tl:])

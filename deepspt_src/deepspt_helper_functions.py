@@ -133,7 +133,6 @@ def make_preds(model, X_to_eval, y_to_eval, min_max_len=601, device='cpu',
                     device=device)
     model.eval()
     model.to(device)
-    print(device)
     test_loader = DataLoader(D, batch_size = batch_size)
     masked_pred, masked_score, masked_y = model.predict(test_loader)
     tmp_dict['masked_pred'] = masked_pred
@@ -4440,17 +4439,12 @@ def make_tracks_into_FP_timeseries(track, pred_track, window_size=40, selected_f
                                         t, fp_datapath, hmm_filename, 
                                         dim, dt, 'Normal').reshape(1,-1)
 
-        print(FP_vanilla_segment)
-        print(np.sum(FP_vanilla_segment))
         new_feature1, new_feature2, new_feature3,\
         new_feature4, new_feature5,\
         new_feature6 = gen_temporal_features([p])
-        print(new_feature1, new_feature2, new_feature3, new_feature4, new_feature5, new_feature6)
         inst_msds_D_all = get_inst_msd([t], dim, dt)
-        print(inst_msds_D_all)
         perc_ND, perc_DM, perc_CD,\
         perc_SD, num_cp = get_perc_per_diff([p])
-        print(perc_ND, perc_DM, perc_CD, perc_SD, num_cp)
         FP_segment = np.column_stack([FP_vanilla_segment, 
                                     perc_ND.reshape(-1,1), perc_DM.reshape(-1,1), 
                                     perc_CD.reshape(-1,1), perc_SD.reshape(-1,1), 

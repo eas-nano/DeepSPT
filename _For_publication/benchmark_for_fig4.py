@@ -18,6 +18,7 @@ import random
 import joblib
 
 
+
 # Define the MLP architecture
 class MLP(nn.Module):
     def __init__(self, layers, device='cpu'):
@@ -99,8 +100,8 @@ endo_recall1_mean = []
 endo_recall1_stds = []
 endo_recall2_mean = []
 endo_recall2_stds = []
-for exp_type in ['E_vs_N']:#['ap2', 'E_vs_N']: # ['ap2']: # 
-    for conditions_to_pred in ['all']:#['alpha', 'D', 'D+alpha', 'all']: #
+for exp_type in ['ap2', 'E_vs_N']: # ['ap2']: # 
+    for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']: #
         print('conditions_to_pred', conditions_to_pred)
         if exp_type == 'ap2':
             FP_all = np.array(pickle.load(open('../deepspt_results/analytics/AP2_FPX_DeepSPT.pkl', 'rb'))[:,1:2])
@@ -136,7 +137,7 @@ for exp_type in ['E_vs_N']:#['ap2', 'E_vs_N']: # ['ap2']: #
             y_all = np.array(pickle.load(open('../deepspt_results/analytics/EEA1_NPC1_only_FPy.pkl', 'rb')))
             kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=random_state)
             l1, l2 = 'EEA1', 'NPC1'
-            conf_threshold = 0.6
+            conf_threshold = 0.5
             lr = 10**-3
             num_epochs =  10
             batch_size = 32
@@ -350,6 +351,7 @@ for exp_type in ['E_vs_N']:#['ap2', 'E_vs_N']: # ['ap2']: #
         plt.savefig('../deepspt_results/figures/{}_{}_confthres{}_confusion_matrix.pdf'.format(exp_type, conditions_to_pred, conf_threshold),
                     pad_inches=0.2, bbox_inches='tight')
         plt.show()
+        plt.close()
         # print(classification_report(np.hstack(y_test_all)[np.hstack(y_pred_all)!=-1], 
         #                             np.hstack(y_pred_all)[np.hstack(y_pred_all)!=-1], 
         #                             target_names=diffs))
@@ -392,28 +394,108 @@ endo_recall1_stds = pickle.load(open('../deepspt_results/analytics/endo_recall1_
 endo_recall2_mean = pickle.load(open('../deepspt_results/analytics/endo_recall2_mean.pkl', 'rb'))
 endo_recall2_stds = pickle.load(open('../deepspt_results/analytics/endo_recall2_stds.pkl', 'rb'))
 
-conditions_to_pred_list = ['Alpha', 'D', 'D & alpha', '../deepsPT']
+conditions_to_pred_list = ['Alpha', 'D', 'D & alpha', 'DeepsPT']
 
-print(len(endo_acc_all))
+print(len(endo_acc_all), len(endo_acc_all[0]))
 
 # calculate welsch t-test for accuracy
 from scipy.stats import ttest_ind
+import sys
+sys.path.append('../')
+from deepspt_src import sci_notation
 
-for i in range(len(conditions_to_pred_list)):
-    print(len(endo_acc_all[i]), len(endo_acc_all[-1]))
-    print(conditions_to_pred_list[i], 'vs', conditions_to_pred_list[-1])
-    print('endo', ttest_ind(endo_acc_all[i], endo_acc_all[-1], equal_var=False))
-    print('ap2', ttest_ind(ap2_acc_all[i], ap2_acc_all[-1], equal_var=False))
-    print()
+df = pd.DataFrame()
 
+acc_means_1 = []
+acc_means_2 = []
+acc_std_1 = []
+acc_std_2 = []
+pvals_all = []
+tvals_all = []
+dof_all = []
+row_names = []
+n1_all = []
+n2_all = []
+
+print(len(ap2_acc_all))
+
+# calculate welsh t-test degree of freedom
+for exp_type in ['ap2', 'E_vs_N']:
+    for j in range(3):
+        if exp_type == 'E_vs_N':
+            acc_lists_1 = endo_acc_all[3]
+            acc_lists_2 = endo_acc_all[j]
+
+            t, p = ttest_ind(acc_lists_1, acc_lists_2)
+            rowname = 'EEA1 vs NPC1: DeepSPT (1) vs {} (2)'.format(conditions_to_pred_list[j])
+            acc_means_1.append(np.round(100*np.mean(acc_lists_1),5))
+            acc_means_2.append(np.round(100*np.mean(acc_lists_2),5))
+            acc_std_1.append(np.round(100*np.std(acc_lists_1, ddof=1),5))
+            acc_std_2.append(np.round(100*np.std(acc_lists_2, ddof=1),5))
+
+            n1 = len(acc_lists_1)
+            n2 = len(acc_lists_2)
+            vn1 = np.var(acc_lists_1) / n1
+            vn2 = np.var(acc_lists_2) / n2
+
+        elif exp_type == 'ap2':
+            acc_lists_1 = ap2_acc_all[3]
+            acc_lists_2 = ap2_acc_all[j]
+
+            t, p = ttest_ind(acc_lists_1, acc_lists_2)
+            rowname = 'Dorsal vs Ventral: DeepSPT (1) vs {} (2)'.format(conditions_to_pred_list[j])
+            acc_means_1.append(np.round(100*np.mean(acc_lists_1),5))
+            acc_means_2.append(np.round(100*np.mean(acc_lists_2),5))
+            acc_std_1.append(np.round(100*np.std(acc_lists_1, ddof=1),5))
+            acc_std_2.append(np.round(100*np.std(acc_lists_2, ddof=1),5))
+
+            n1 = len(acc_lists_1)
+            n2 = len(acc_lists_2)
+            vn1 = np.var(acc_lists_1) / n1
+            vn2 = np.var(acc_lists_2) / n2
+
+        # Welch–Satterthwaite equation for dof
+        with np.errstate(divide='ignore', invalid='ignore'):
+            dof = (vn1 + vn2)**2 / (vn1**2 / (n1 - 1) + vn2**2 / (n2 - 1))
+
+        pvals_all.append(p)
+        tvals_all.append(np.round(t,5))
+        dof_all.append(np.round(dof,5))
+        n1_all.append(n1)
+        n2_all.append(n2)
+        row_names.append(rowname)
+
+df['p-values'] = [sci_notation(p, 10) for p in pvals_all]
+df['Test statistics'] = tvals_all
+df['Degrees of freedom'] = dof_all
+df['\u03BC (1) (%)'] = acc_means_1
+df['\u03C3 (1) (%)'] = acc_std_1
+df['N (1)'] = n1_all
+df['\u03BC (2) (%)'] = acc_means_2
+df['\u03C3 (2) (%)'] = acc_std_2
+df['N (2)'] = n2_all
+df.index = row_names
+print(df)
+df.to_csv('../deepspt_results/analytics/benchmarkfig4_ttest.csv')
+
+
+print(ap2_acc_mean, ap2_acc_all)
 
 fig, ax = plt.subplots(2,1,figsize=(5,5))
+
+
+ax[1].bar(list(range(len(conditions_to_pred_list))), ap2_acc_mean, 
+          color='dimgrey', alpha=0.75)
+
 ax[1].errorbar(list(range(len(conditions_to_pred_list))), 
                ap2_acc_mean, yerr=ap2_acc_stds, fmt='.',
                label='Dorsal Ventral', color='k', capsize=3,
                ecolor='k', elinewidth=1, markeredgewidth=1)
-ax[1].bar(list(range(len(conditions_to_pred_list))), ap2_acc_mean, 
-          color='dimgrey', alpha=0.75)
+
+ants = np.repeat(list(range(len(conditions_to_pred_list))),len(ap2_acc_all[0]))
+ants_spread = ants + np.random.uniform(-0.1,0.1,len(ants))
+ax[1].scatter(ants_spread, 100*np.array(ap2_acc_all), 
+              alpha=0.5, color='k', s=7)
 
 #ax[0].errorbar(list(range(len(conditions_to_pred_list))), ap2_recall1_mean, yerr=ap2_recall1_stds, fmt='.')
 #ax[0].errorbar(list(range(len(conditions_to_pred_list))), ap2_recall2_mean, yerr=ap2_recall2_stds, fmt='.')
@@ -422,12 +504,18 @@ ax[1].set_ylim(0,100)
 ax[1].set_yticks([0,50,100], size=14)
 ax[1].set_yticklabels([0,50,100], size=14)
 
+ax[0].bar(list(range(len(conditions_to_pred_list))), endo_acc_mean, 
+          color='dimgrey', alpha=0.75)
+
 ax[0].errorbar(list(range(len(conditions_to_pred_list))), 
                endo_acc_mean, yerr=endo_acc_stds, fmt='.',
                label='EEA1 NPC1', color='k', capsize=3,
                ecolor='k', elinewidth=1, markeredgewidth=1)
-ax[0].bar(list(range(len(conditions_to_pred_list))), endo_acc_mean, 
-          color='dimgrey', alpha=0.75)
+
+ants = np.repeat(list(range(len(conditions_to_pred_list))),len(endo_acc_all[0]))
+ants_spread = ants + np.random.uniform(-0.1,0.1,len(ants))
+ax[0].scatter(ants_spread, 100*np.array(endo_acc_all), 
+              alpha=0.5, color='k', s=7)
 #ax[0].errorbar(list(range(len(conditions_to_pred_list))), endo_recall1_mean, yerr=endo_recall1_stds, fmt='.')
 #ax[0].errorbar(list(range(len(conditions_to_pred_list))), endo_recall2_mean, yerr=endo_recall2_stds, fmt='.')
 ax[0].legend(fontsize=14, loc='upper left', handletextpad=0.1)
@@ -700,13 +788,8 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
             plt.savefig('../deepspt_results/figures/{}_{}_confusion_matrix.pdf'.format(exp_type, conditions_to_pred),
                         pad_inches=0.2, bbox_inches='tight')
             plt.show()
-            try:
-                print(classification_report(np.hstack(y_test_all)[np.hstack(y_pred_all)!=-1], 
-                                            np.hstack(y_pred_all)[np.hstack(y_pred_all)!=-1], 
-                                            target_names=diffs))
-            except:
-                pass
-            
+            plt.close()
+
             acc_all.append(test_acc_all)
             N_all.append(np.sum(N_test))
             recall1_all.append(pred_TP)
@@ -720,14 +803,11 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
         pred_TP_all_std = np.nanmean(recall1_all, axis=1)
         pred_TN_all_std = np.nanmean(recall2_all, axis=1)
 
-        print(pred_TP_all, pred_TP_all_std)
-        print(pred_TN_all, pred_TN_all_std)
-
         results_dict_uncertaintracks[exp_type] = [proba_all, pred_all, X_test_idx_order]
-        results_dict[exp_type] = [mean_acc, std_acc, N_all, pred_TP_all, pred_TN_all, pred_TP_all_std, pred_TN_all_std]
+        results_dict[exp_type] = [mean_acc, std_acc, N_all, pred_TP_all, pred_TN_all, pred_TP_all_std, pred_TN_all_std, acc_all]
 
-    pickle.dump(results_dict_uncertaintracks, open('../deepspt_results/{}results_dict_uncertaintracks.pkl'.format(conditions_to_pred), 'wb'))
-    pickle.dump(results_dict, open('../deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred), 'wb'))
+    pickle.dump(results_dict_uncertaintracks, open('../deepspt_results/analytics/{}results_dict_uncertaintracks.pkl'.format(conditions_to_pred), 'wb'))
+    pickle.dump(results_dict, open('../deepspt_results/analytics/{}_results_dict.pkl'.format(conditions_to_pred), 'wb'))
 
 # %%
 
@@ -929,8 +1009,6 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
 
             print('conf_threshold', conf_threshold)
             print(f'Test Acc = {np.mean(test_acc_all):.4f}+-{np.std(test_acc_all, ddof=1):.4f}')
-            print(pred_TP)
-            print(pred_TN)
             cms = np.array([[np.nanmean(pred_TP),np.nanmean(pred_FP)],
                             [np.nanmean(pred_FN), np.nanmean(pred_TN)]])
             cms_stds = np.array([[np.nanstd(pred_TP, ddof=1),np.nanstd(pred_FP, ddof=1)],
@@ -963,12 +1041,7 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
             plt.savefig('../deepspt_results/figures/{}_{}_confthreshold{}_confusion_matrix_percell.pdf'.format(exp_type, conditions_to_pred, conf_threshold),
                         pad_inches=0.2, bbox_inches='tight')
             plt.show()
-            try:
-                print(classification_report(np.hstack(y_test_all)[np.hstack(y_pred_all)!=-1], 
-                                            np.hstack(y_pred_all)[np.hstack(y_pred_all)!=-1], 
-                                            target_names=diffs))
-            except:
-                pass
+            plt.close()
             
             acc_all.append(test_acc_all)
             N_all.append(np.sum(N_test))
@@ -983,12 +1056,9 @@ for conditions_to_pred in ['alpha', 'D', 'D+alpha', 'all']:
         pred_TP_all_std = np.nanmean(recall1_all, axis=1)
         pred_TN_all_std = np.nanmean(recall2_all, axis=1)
 
-        print(pred_TP_all, pred_TP_all_std)
-        print(pred_TN_all, pred_TN_all_std)
+        results_dict_per_cell[exp_type] = [mean_acc, std_acc, N_all, pred_TP_all, pred_TN_all, pred_TP_all_std, pred_TN_all_std, acc_all]
 
-        results_dict_per_cell[exp_type] = [mean_acc, std_acc, N_all, pred_TP_all, pred_TN_all, pred_TP_all_std, pred_TN_all_std]
-
-    pickle.dump(results_dict_per_cell, open('../deepspt_results/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'wb'))
+    pickle.dump(results_dict_per_cell, open('../deepspt_results/analytics/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'wb'))
 
 
 # %%
@@ -996,8 +1066,8 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-conditions_to_pred = 'all'
-results_dict = pickle.load(open('../deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred), 'rb'))
+conditions_to_pred = 'D+alpha'
+results_dict = pickle.load(open('../deepspt_results/analytics/{}_results_dict.pkl'.format(conditions_to_pred), 'rb'))
 
 offset = [0.06, 0.1]
 
@@ -1036,7 +1106,7 @@ for i, k in enumerate(list(results_dict.keys())):
 
     mean_acc, std_acc, N_all,\
         pred_TP_all, pred_TN_all,\
-            pred_TP_all_std, pred_TN_all_std = results_dict[k]
+            pred_TP_all_std, pred_TN_all_std, all_acc = results_dict[k]
     
     mean_acc = np.array(mean_acc)*100
     std_acc = np.array(std_acc)*100
@@ -1050,12 +1120,18 @@ for i, k in enumerate(list(results_dict.keys())):
     pred_TP_all[np.isnan(pred_TP_all)] = 0
     pred_TN_all[np.isnan(pred_TN_all)] = 0
 
+    print(len(all_acc), len(all_acc[0]))
 
     fig, ax = plt.subplots(figsize=(8,3.5))
     ax.errorbar(np.arange(len(mean_acc)), mean_acc, yerr=std_acc, 
                 fmt='o', label='Accuracy', color='k',
                 capsize=5, capthick=1.5, elinewidth=1.5, markeredgewidth=1.5, zorder=10)
     ax.plot(np.arange(len(mean_acc)), mean_acc, color='k', lw=2)
+    
+    ants = np.repeat(np.arange(len(mean_acc)), len(all_acc[0]))
+    ants_spread = ants + np.random.uniform(-0.095, 0.095, len(ants))
+    ax.scatter(ants_spread, np.hstack(all_acc)*100,
+               color='k', alpha=0.7, zorder=1, s=5)
 
     ax.plot(np.arange(len(mean_acc)), pred_TP_all, 
             label=labels_tp, zorder=1, color='k', 
@@ -1112,7 +1188,6 @@ for i, k in enumerate(list(results_dict.keys())):
                frameon=False,
                handletextpad=0.2, columnspacing=0.5, handlelength=1.5,)
 
-    print(k)
     plt.tight_layout()
 
     plt.savefig('../deepspt_results/figures/{}_ACCnN_vs_confthreshold_{}.pdf'.format(k, conditions_to_pred),
@@ -1123,9 +1198,9 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-conditions_to_pred = 'all'
-print(os.path.exists('../deepspt_results/{}_results_dict.pkl'.format(conditions_to_pred)))
-results_dict_per_cell = pickle.load(open('../deepspt_results/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'rb'))
+conditions_to_pred = 'D+alpha'
+print(os.path.exists('../deepspt_results/analytics/{}_results_dict.pkl'.format(conditions_to_pred)))
+results_dict_per_cell = pickle.load(open('../deepspt_results/analytics/{}_results_dict_per_cell.pkl'.format(conditions_to_pred), 'rb'))
 
 offset = [0.06, 0.1]
 
@@ -1164,7 +1239,7 @@ for i, k in enumerate(list(results_dict_per_cell.keys())):
 
     mean_acc, std_acc, N_all,\
         pred_TP_all, pred_TN_all,\
-            pred_TP_all_std, pred_TN_all_std = results_dict_per_cell[k]
+            pred_TP_all_std, pred_TN_all_std, all_acc = results_dict_per_cell[k]
     
     mean_acc = np.array(mean_acc)*100
     std_acc = np.array(std_acc)*100
@@ -1185,6 +1260,10 @@ for i, k in enumerate(list(results_dict_per_cell.keys())):
                 fmt='o', label='Accuracy', color='k',
                 capsize=5, capthick=1.5, elinewidth=1.5, markeredgewidth=1.5, zorder=10)
     ax.plot(np.arange(len(mean_acc)), mean_acc, color='k', lw=2)
+    ants = np.repeat(np.arange(len(mean_acc)), len(all_acc[0]))
+    ants_spread = ants + np.random.uniform(-0.095, 0.095, len(ants))
+    ax.scatter(ants_spread, np.hstack(all_acc)*100,
+               color='k', alpha=0.7, zorder=1, s=5)
 
     ax.plot(np.arange(len(mean_acc)), pred_TP_all, 
             label=labels_tp, zorder=1, color='k', 
@@ -1351,8 +1430,8 @@ for cvi, (X_train_idx, X_valid_idx) in enumerate(kf.split(X, y)):
             best_model = model   
 
             modelsavepath = '../deepspt_results/EEA1_NPC1_results/precomputed_files/eea1npc1_classifier/'
-            torch.save(model.state_dict(), modelsavepath+'best_model_DeepSPT.pt')
-            joblib.dump(scaler, modelsavepath+'scaler_DeepSPT.pkl')
+            torch.save(model.state_dict(), modelsavepath+'best_model.pt')
+            joblib.dump(scaler, modelsavepath+'scaler.pkl')
 
         if epoch+1%2==0:
             print(f'Epoch {epoch+1}/{num_epochs}: Train Loss = {train_loss:.4f}, Val loss = {val_loss:.4f}, Val Acc = {val_acc:.4f}')

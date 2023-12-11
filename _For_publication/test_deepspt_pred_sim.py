@@ -142,7 +142,7 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
     
     savename_score = '../deepspt_results/analytics/testdeepspt_ensemble_score.pkl'
     savename_pred = '../deepspt_results/analytics/testdeepspt_ensemble_pred.pkl'
-    rerun_segmentaion = True
+    rerun_segmentaion = False
     ensemble_score, ensemble_pred = run_temporalsegmentation(
                                  best_models_sorted, 
                                  X_to_eval, y_to_eval,
@@ -334,11 +334,13 @@ for txt in range(len(histogram_intersection_all)):
                   accuracy_all[txt]+.04),
                   fontsize=14)
 
-savedir = '../deepspt_results/results_rotavirus/figures'
+savedir = '../deepspt_results/figures'
 # plt.savefig(savedir+'/simDeepSPTpred_accuracy_vs_Doverlap.pdf', bbox_inches='tight')
 plt.show()
 
+
 # %%
+
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -353,12 +355,16 @@ for i, conditions_to_use in enumerate(['all', 'alpha', 'D', 'D+alpha']):
     accuracy_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'rb'))
     accuracy_std_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'rb'))
     histogram_intersection_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
+    accuracy_all_lists = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all_lists.pkl', 'rb'))
+
     name_to_use = conditions_to_use if conditions_to_use != 'all' else 'DeepSPT'
     if name_to_use == 'D+alpha':
         name_to_use = 'D & alpha'
     if name_to_use == 'alpha':
         name_to_use = 'Alpha'
 
+    print()
+    print()
     print(accuracy_all)
     print(accuracy_std_all)
     print(histogram_intersection_all)
@@ -367,20 +373,27 @@ for i, conditions_to_use in enumerate(['all', 'alpha', 'D', 'D+alpha']):
                 fmt=shape_list[i], markersize=5, color=colors_list[i], ecolor=colors_list[i], 
                 elinewidth=1, capsize=5,
                 capthick=1, label=name_to_use)
-    plt.xlabel('Diffusion coefficient overlap', fontsize=16)
+    
+    ants = np.repeat(histogram_intersection_all,len(accuracy_all_lists[0]))
+    ants_spread = ants + np.random.normal(0,0.005,len(ants))
+    plt.scatter(ants_spread, 
+                np.hstack(accuracy_all_lists), s=7, alpha=.8, color=colors_list[i])
+
+    plt.xlabel('Diffusion coefficient overlap (%)', fontsize=16)
     plt.ylabel('Accuracy (%)', fontsize=16)
     plt.ylim(0.,1.15)
     plt.xlim(0.2,.86)
     plt.yticks([0,0.25,0.5,0.75,1.0], labels=[0,25,50,75,100])
+    plt.xticks([0.2,0.3,0.4,0.5,0.6,0.7,0.8], labels=[20,30,40,50,60,70,80])
 
-    if conditions_to_use == 'all':
-        for txt in range(len(histogram_intersection_all)):
-            plt.annotate("{:.0f}%".format(np.round(accuracy_all[txt]*100,0)), 
-                        (histogram_intersection_all[txt]-0.0275, 
-                        accuracy_all[txt]+.07),
-                        fontsize=14)
+    # if conditions_to_use == 'all':
+    #     for txt in range(len(histogram_intersection_all)):
+    #         plt.annotate("{:.0f}%".format(np.round(accuracy_all[txt]*100,0)), 
+    #                     (histogram_intersection_all[txt]-0.0275, 
+    #                     accuracy_all[txt]+.07),
+    #                     fontsize=14)
 
-    savedir = '../deepspt_results/results_rotavirus/figures'
+    savedir = '../deepspt_results/figures'
 
 # horizontal legend
 plt.legend(bbox_to_anchor=(.44, .01, 1., .102), loc='lower left',
@@ -395,7 +408,7 @@ plt.show()
 
 print(len(changing_diffusion_list_all)//2)
 
-path = '../_Data/Simulated_diffusion_tracks/'
+path = '../deepspt_results/tracks/'
 output_name = 'test_deepSPTpred_dim'+str(3)+'_Didx_'+str(3)
 changing_diffusion_list_all_to_plot = pickle.load(open(path+output_name+'.pkl', 'rb'))
 
@@ -421,7 +434,7 @@ for i, t in enumerate(tracks1[::to_plot]):
 ax.set_xlim(-8,20)
 ax.set_ylim(-7,7.5)
 
-savedir = '../deepspt_results/results_rotavirus/figures'
+savedir = '../deepspt_results/figures'
 print(savedir+'/simDeepSPTpred_tracks_to_plot_{}.pdf'.format(to_plot))
 plt.savefig(savedir+'/simDeepSPTpred_tracks_to_plot_{}.pdf'.format(to_plot), bbox_inches='tight')
 plt.show()
@@ -436,12 +449,94 @@ acc_lists_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_co
 acc_lists_alpha = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[1]+'_accuracy_all_lists.pkl', 'rb'))
 acc_lists_D = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[2]+'_accuracy_all_lists.pkl', 'rb'))
 acc_lists_Dalpha = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+c_list[3]+'_accuracy_all_lists.pkl', 'rb'))
+histogram_intersection_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
 
 print(len(acc_lists_all), acc_lists_Dalpha[0])
 
-i = 0
-print('DeepSPT vs D&alpha', i, ttest_ind(acc_lists_all[i], acc_lists_Dalpha[i])[1])
-print('DeepSPT vs alpha', i, ttest_ind(acc_lists_all[i], acc_lists_alpha[i])[1])
-print('DeepSPT vs D', i, ttest_ind(acc_lists_all[i], acc_lists_D[i])[1])
+i = 5
+df = pd.DataFrame()
 
+acc_means_1 = []
+acc_means_2 = []
+acc_std_1 = []
+acc_std_2 = []
+pvals_all = []
+tvals_all = []
+dof_all = []
+row_names = []
+n1_all = []
+n2_all = []
+for i in range(7):
+    
+    # calculate welsh t-test degree of freedom
+    for j in range(3):
+        if j == 0:
+            t, p = ttest_ind(acc_lists_all[i], acc_lists_Dalpha[i])
+            rowname = 'DeepSPT (1) vs D&alpha (2)'
+            acc_means_1.append(np.round(100*np.mean(acc_lists_all[i]),5))
+            acc_means_2.append(np.round(100*np.mean(acc_lists_Dalpha[i]),5))
+            acc_std_1.append(np.round(100*np.std(acc_lists_all[i], ddof=1),5))
+            acc_std_2.append(np.round(100*np.std(acc_lists_Dalpha[i], ddof=1),5))
 
+            n1 = len(acc_lists_all[i])
+            n2 = len(acc_lists_Dalpha[i])
+            vn1 = np.var(acc_lists_all[i]) / n1
+            vn2 = np.var(acc_lists_Dalpha[i]) / n2
+
+        elif j == 1:
+            t, p = ttest_ind(acc_lists_all[i], acc_lists_alpha[i])
+            rowname = 'DeepSPT (1) vs alpha (2)'
+            acc_means_1.append(np.round(100*np.mean(acc_lists_all[i]),5))
+            acc_means_2.append(np.round(100*np.mean(acc_lists_alpha[i]),5))
+            acc_std_1.append(np.round(100*np.std(acc_lists_all[i], ddof=1),5))
+            acc_std_2.append(np.round(100*np.std(acc_lists_alpha[i], ddof=1),5))
+
+            n1 = len(acc_lists_all[i])
+            n2 = len(acc_lists_alpha[i])
+            vn1 = np.var(acc_lists_all[i]) / n1
+            vn2 = np.var(acc_lists_alpha[i]) / n2
+
+        elif j == 2:
+            t, p = ttest_ind(acc_lists_all[i], acc_lists_D[i])
+            rowname = 'DeepSPT (1) vs D (2)'
+            acc_means_1.append(np.round(100*np.mean(acc_lists_all[i]),5))
+            acc_means_2.append(np.round(100*np.mean(acc_lists_D[i]),5))
+            acc_std_1.append(np.round(100*np.std(acc_lists_all[i], ddof=1),5))
+            acc_std_2.append(np.round(100*np.std(acc_lists_D[i], ddof=1),5))
+
+            n1 = len(acc_lists_all[i])
+            n2 = len(acc_lists_D[i])
+            vn1 = np.var(acc_lists_all[i]) / n1
+            vn2 = np.var(acc_lists_D[i]) / n2
+
+        # Welch–Satterthwaite equation for dof
+        with np.errstate(divide='ignore', invalid='ignore'):
+            dof = (vn1 + vn2)**2 / (vn1**2 / (n1 - 1) + vn2**2 / (n2 - 1))
+
+        pvals_all.append(p)
+        tvals_all.append(np.round(t,5))
+        dof_all.append(np.round(dof,5))
+        n1_all.append(n1)
+        n2_all.append(n2)
+        row_names.append(rowname+', D overlap: '+str(np.round(histogram_intersection_all[i]*100,0))+ '%')
+
+df['p-values'] = [sci_notation(p, 10) for p in pvals_all]
+df['Test statistics'] = tvals_all
+df['Degrees of freedom'] = dof_all
+df['\u03BC (1) (%)'] = acc_means_1
+df['\u03C3 (1) (%)'] = acc_std_1
+df['N (1)'] = n1_all
+df['\u03BC (2) (%)'] = acc_means_2
+df['\u03C3 (2) (%)'] = acc_std_2
+df['N (2)'] = n2_all
+df.index = row_names
+print()
+df.to_csv('../deepspt_results/analytics/simDeepSPTpred_ttest.csv')
+
+# %%
+# cdot
+print('\u22C5')
+print('\u03BC')
+
+# 10^2 superscript 2
+print('3')

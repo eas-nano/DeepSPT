@@ -460,6 +460,7 @@ plt.show()
 endosomal_tracks = tracks
 endosomal_pred = np.array(ensemble_pred)
 expname_all = np.hstack([EEA1_expname_all, NPC1_expname_all])
+pickle.dump(expname_all, open('../deepspt_results/analytics/expname_all_EEA1NPC1.pkl', 'wb'))
 
 fp_datapath = '../_Data/Simulated_diffusion_tracks/'
 hmm_filename = 'simulated2D_HMM.json'

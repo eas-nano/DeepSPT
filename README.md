@@ -16,7 +16,7 @@ DeepSPT's installation guide utilize conda environment setup, therefore either m
 DeepSPT is most easily setup in a new conda environment with dependecies, versions, and channels found in environment_droplet.yml - Open Terminal / Commando prompt at wished location of DeepSPT and run the bash commands below, which creates the environemnt, downloades and installs packages, typically in less than 5 minutes. The code has been tested both on MacOS and Linux operating systems.
 
 ```bash
-git clone https://github.com/JKaestelHansen/DeepSPT
+git clone git@github.com:JKaestelHansen/DeepSPT.git
 cd DeepSPT
 conda env create -f environment_droplet.yml
 conda activate DeepSPT

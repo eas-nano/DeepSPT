@@ -1,0 +1,4 @@
+name: py36
+channels:
+  - defaults
+prefix: /opt/anaconda3/envs/py36

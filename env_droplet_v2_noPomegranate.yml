@@ -131,7 +131,7 @@ dependencies:
     - pillow==9.4.0
     - pipreqs==0.4.13
     - plotly==5.12.0
-    - pomegranate==0.14.8
+    # - pomegranate==0.14.8
     - prometheus-client==0.17.1
     - protobuf==4.25.2
     - pyarrow==10.0.1

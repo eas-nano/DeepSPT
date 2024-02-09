@@ -22,6 +22,18 @@ conda env create -f environment_droplet.yml
 conda activate DeepSPT
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
+
+As alternative option:
+git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
+cd DeepSPT
+conda env create -f environment_droplet_minimal.yml
+conda activate DeepSPT
+pip install h5py==2.10.0
+pip install imagecodecs==2023.3.16
+pip install pomegranate==0.14.8
+pip install probfit==1.2.0
+pip install iminuit==2.11.0
+
 ```
 DeepSPT modules and additional/helpful functions are contained in the `deepspt_src` folder.
 When running/building scripts in the DeepSPT directory modules are imported as:

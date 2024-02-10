@@ -27,7 +27,7 @@ As alternative option:
 git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
 cd DeepSPT
 conda env create -f environment_droplet_minimal.yml
-conda activate DeepSPT
+conda activate simpleDeepSPT
 pip install h5py==2.10.0
 pip install imagecodecs==2023.3.16
 pip install pomegranate==0.14.8

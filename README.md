@@ -23,7 +23,7 @@ conda activate DeepSPT
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
 
-As alternative option:
+As second option:
 git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
 cd DeepSPT
 conda env create -f environment_droplet_minimal.yml
@@ -31,6 +31,32 @@ conda activate simpleDeepSPT
 pip install h5py==2.10.0
 pip install imagecodecs==2023.3.16
 pip install pomegranate==0.14.8
+pip install probfit==1.2.0
+pip install iminuit==2.11.0
+
+As third option:
+Especially if running this on an Apple Macbook - M1/M2/M3 processor:
+
+git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
+cd DeepSPT
+
+conda create --name simpleDeepSPT
+conda activate simpleDeepSPT
+conda install pip
+
+brew install HDF5 (install brew and update path, instructions here: "https://brew.sh/")
+(if the above command gives you an issue, run "arch -arm64 brew install hdf5")
+export HDF5_DIR=/opt/homebrew/Cellar/hdf5/(1.12.0_4 or your version)
+OR 
+export HDF5_DIR=/opt/homebrew/opt/hdf5 (if hdf5 is installed in the "/opt/homebrew/opt/hdf5" location, you have to check it out first)
+pip install --no-binary=h5py h5py
+
+conda env update --file environment_droplet_minimal.yml
+
+pip install csbdeep==0.7.4
+pip install cython==0.29.37
+conda install imagecodecs==2023.1.23
+pip install pomegranate==0.14.9
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
 

@@ -34,7 +34,7 @@ pip install pomegranate==0.14.8
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
 
-As third option:
+As third option (A big thanks to Konstantinos Tsolakidis for contributing approach):
 Especially if running this on an Apple Macbook - M1/M2/M3 processor:
 
 git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
@@ -59,6 +59,7 @@ conda install imagecodecs==2023.1.23
 pip install pomegranate==0.14.9
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
+
 
 ```
 DeepSPT modules and additional/helpful functions are contained in the `deepspt_src` folder.

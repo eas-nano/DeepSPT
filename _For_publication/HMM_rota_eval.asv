@@ -1,0 +1,39 @@
+changepoints_ML = [];
+changepoints_GT = [];
+for c = 1:100
+    data = importdata(append('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/_For_publication/baseline_methods/HMM_rota/analysis_rota_',string(c),'.mat')).results;
+    ML_states = data.ML_states;
+
+    for i = 2:length(ML_states)
+        if ML_states(i) ~= ML_states(1)
+            cp_ML = i-1;
+            changepoints_ML(end+1) = i-1;
+            break;  % Exit the loop once the first deviation is found
+        end
+    end
+
+    test_y_path = 'analytics/frame_change_pruned_DeepSPT_v1.pkl';
+    filename_y = append('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/deepspt_results/', test_y_path);
+    fid=py.open(filename_y,'rb');
+    target=py.pickle.load(fid);
+    py_target = target(c);
+    GT = str2num(py_target.string);
+
+    changepoints_GT = [changepoints_GT, GT];
+end
+
+% Saving changepoints to .mat file
+save('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/_For_publication/baseline_methods/hmm_rota_changepoints_ML.mat', 'changepoints_ML');
+save('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/_For_publication/baseline_methods/hmm_rota_changepoints_GT.mat', 'changepoints_GT');
+
+% Saving changepoints to .txt files
+dlmwrite('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/_For_publication/baseline_methods/hmm_rota_changepoints_ML.txt', changepoints_ML, 'delimiter', '\t');
+dlmwrite('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/_For_publication/baseline_methods/hmm_rota_changepoints_GT.txt', changepoints_GT, 'delimiter', '\t');
+
+% Convert MATLAB arrays to NumPy arrays
+np_changepoints_ML = py.numpy.array(changepoints_ML);
+np_changepoints_GT = py.numpy.array(changepoints_GT);
+
+% Save as .npy files
+py.numpy.save('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/_For_publication/baseline_methods/hmm_rota_changepoints_ML.npy', np_changepoints_ML);
+py.numpy.save('/Users/jacobkh/Documents/PhD/SPT/github_final/DeepSPT/_For_publication/baseline_methods/hmm_rota_changepoints_GT.npy', np_changepoints_GT);

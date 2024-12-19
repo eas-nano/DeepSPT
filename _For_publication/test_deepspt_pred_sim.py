@@ -142,7 +142,7 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
     
     savename_score = '../deepspt_results/analytics/testdeepspt_ensemble_score.pkl'
     savename_pred = '../deepspt_results/analytics/testdeepspt_ensemble_pred.pkl'
-    rerun_segmentaion = False
+    rerun_segmentaion = True
     ensemble_score, ensemble_pred = run_temporalsegmentation(
                                  best_models_sorted, 
                                  X_to_eval, y_to_eval,
@@ -165,6 +165,7 @@ for i,Drandomranges in enumerate(Drandomranges_pairs):
                                 19,20,21,23,24,25,27,28,29,30,31,
                                 32,33,34,35,36,37,38,39,40,41,42])
 
+    print(len(changing_diffusion_list_all), len(ensemble_pred))
     FP_1 = create_temporalfingerprint(changing_diffusion_list_all[:n_changing_traces], 
                                         ensemble_pred[:n_changing_traces], fp_datapath, hmm_filename, dim, dt,
                                         selected_features=selected_features)
@@ -348,6 +349,7 @@ import matplotlib.pyplot as plt
 conditions_to_use = 'all' # 'all' or 'D' or 'alpha' or 'D+alpha'
 plt.figure(figsize=(6, 3.5))
 
+colors_list = ['darkred', 'dimgrey', 'peru', 'steelblue']
 colors_list = ['black', 'darkgrey', 'grey', 'dimgrey']
 shape_list = ['o', 'v', '^', 'd']
 
@@ -404,6 +406,83 @@ plt.legend(bbox_to_anchor=(.44, .01, 1., .102), loc='lower left',
 
 plt.savefig(savedir+'/simDeepSPTpred_accuracy_vs_Doverlap_multiple.pdf', bbox_inches='tight')
 plt.show()
+
+# %%
+
+for i, conditions_to_use in enumerate(['all', 'alpha', 'D', 'D+alpha']):
+    accuracy_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'rb'))
+    accuracy_std_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'rb'))
+    histogram_intersection_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
+    accuracy_all_lists = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all_lists.pkl', 'rb'))
+    print(conditions_to_use, histogram_intersection_all, accuracy_all, accuracy_std_all)
+
+# %%
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+
+conditions_to_use = 'all' # 'all' or 'D' or 'alpha' or 'D+alpha'
+plt.figure(figsize=(6, 3.5))
+
+colors_list = ['black', 'darkgrey', 'grey', 'dimgrey']
+colors_list = ['darkred', 'dimgrey', 'peru', 'steelblue']
+colors_list_scat = ['darkred', 'dimgrey', 'peru', 'steelblue']
+shape_list = ['o', 'v', '^', 'd']
+
+for i, conditions_to_use in enumerate(['all', 'alpha', 'D', 'D+alpha']):
+    accuracy_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all.pkl', 'rb'))
+    accuracy_std_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_std_all.pkl', 'rb'))
+    histogram_intersection_all = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_histogram_intersection_all.pkl', 'rb'))
+    accuracy_all_lists = pickle.load(open('../deepspt_results/analytics/simDeepSPTpred_cond_'+conditions_to_use+'_accuracy_all_lists.pkl', 'rb'))
+
+    name_to_use = conditions_to_use if conditions_to_use != 'all' else 'DeepSPT'
+    if name_to_use == 'D+alpha':
+        name_to_use = 'D & alpha'
+    if name_to_use == 'alpha':
+        name_to_use = 'Alpha'
+
+    print()
+    print()
+    print(accuracy_all)
+    print(accuracy_std_all)
+    print(histogram_intersection_all)
+    
+    plt.errorbar(np.array(histogram_intersection_all), accuracy_all, yerr=accuracy_std_all, 
+                fmt=shape_list[i], markersize=5, color=colors_list[i], ecolor=colors_list[i], 
+                elinewidth=1, capsize=5,
+                capthick=1, label=name_to_use)
+    
+    ants = np.repeat(histogram_intersection_all,len(accuracy_all_lists[0]))
+    ants_spread = ants + np.random.normal(0,0.005,len(ants))
+    plt.scatter(ants_spread, 
+                np.hstack(accuracy_all_lists), s=7, alpha=.8, color=colors_list_scat[i])
+
+    plt.xlabel('Diffusion coefficient overlap (%)', fontsize=16)
+    plt.ylabel('Accuracy (%)', fontsize=16)
+    plt.ylim(0.,1.15)
+    plt.xlim(0.17,.86)
+    plt.yticks([0,0.25,0.5,0.75,1.0], labels=[0,25,50,75,100])
+    plt.xticks([0.2,0.3,0.4,0.5,0.6,0.7,0.8], labels=[20,30,40,50,60,70,80])
+
+    # if conditions_to_use == 'all':
+    #     for txt in range(len(histogram_intersection_all)):
+    #         plt.annotate("{:.0f}%".format(np.round(accuracy_all[txt]*100,0)), 
+    #                     (histogram_intersection_all[txt]-0.0275, 
+    #                     accuracy_all[txt]+.07),
+    #                     fontsize=14)
+
+    savedir = '../deepspt_results/figures'
+
+# horizontal legend
+plt.legend(bbox_to_anchor=(.44, .01, 1., .102), loc='lower left',
+           ncol=2, borderaxespad=0.,
+           fontsize=14, frameon=False,
+           handletextpad=0.5, columnspacing=.5, labelspacing=0.3,
+           borderpad=0.2, handlelength=1.)   
+
+plt.savefig(savedir+'/simDeepSPTpred_accuracy_vs_Doverlap_multiple_v1.pdf', bbox_inches='tight')
+plt.show()
+
 # %%
 
 print(len(changing_diffusion_list_all)//2)

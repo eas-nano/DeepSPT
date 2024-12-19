@@ -97,6 +97,16 @@ For demostration regarding presented data and analysis contained in the manuscri
   - Simulated data: simulate_diffusion.py, usage_example.py, and usage_example2.py (WIP) contains functions to simulate trajectories.
   - To access data of the publication "Deep learning assisted Single Particle Tracking for automated correlation between diffusion and function" please download from: TBA. Please extract .zip files in place of folders with the same names.
 
+For just code:
+https://erda.ku.dk/archives/752e4b0695c0dd16ec3c1a130f6ac70b/published-archive.html
+
+for Code and models:
+https://erda.ku.dk/archives/4c5adaaacc5c867f6450bcf89ec55a45/published-archive.html
+
+For models and data:
+https://erda.ku.dk/archives/804ea1ea88f340b79ada3e57141a6d6e/published-archive.html
+
+
 ### Files
   - For_publication: Scripts as used in "Deep Learning Assisted Analysis of Single Particle Tracking for Automated Correlation Between Diffusion and Function". Folders with data and precomputed files are available, see Data availability.
   - _Images: Contains figure seen in Readme. Copyrighted as detailed in journal carrying "Deep learning assisted Single Particle Tracking for automated correlation between diffusion and function".

@@ -1931,7 +1931,7 @@ def load_or_create_resultsdict_for_rawdata(PROJECT_NAMES, SEARCH_PATTERN, OUTPUT
             results_dict = {}
             for file in PROJECT_NAMES:
                 X_to_eval = np.array(load_X(datapath, file, features=['XYZ','SL', 'DP']), dtype=object)
-                y_to_eval = np.array([np.ones(len(x))*0.5 for x in X_to_eval])
+                y_to_eval = np.array([np.ones(len(x))*0.5 for x in X_to_eval], dtype=object)
                 print(X_to_eval.shape)
                 filtering = np.array([len(t) for t in X_to_eval])>min_trace_length
                 X_to_eval = X_to_eval[filtering]
@@ -4419,7 +4419,65 @@ def run_temporalsegmentation(best_models_sorted,
             ensemble_score = pickle.load(open(dir_name+savename_score, 'rb'))
             ensemble_pred = pickle.load(open(dir_name+savename_pred, 'rb'))
         
-        ensemble_pred = np.array(ensemble_pred)
+        ensemble_pred = np.array(ensemble_pred, dtype=object)
+        return ensemble_score, ensemble_pred
+
+
+def run_temporalsegmentation_ANDI(best_models_sorted, 
+                                 X_to_eval, y_to_eval,
+                                 modelpath='', dir_name='',
+                                 device='cpu', dim=2, min_max_len=200, 
+                                 X_padtoken=0, y_padtoken=10,
+                                 batch_size=32, seed=42,
+                                 rerun_segmentaion=True,
+                                 savename_score='ensemble_score.pkl',
+                                 savename_pred='ensemble_pred.pkl',
+                                 use_temperature=True):
+       
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+
+        "returns ensemble_score, ensemble_pred"
+        
+        # one can change the if statement to True to recompute the ensemble score
+        if rerun_segmentaion:
+            run_temporalsegmentation = True
+        elif not os.path.exists(dir_name+savename_score):
+            run_temporalsegmentation = True
+        else:
+            run_temporalsegmentation = False
+    
+        if run_temporalsegmentation:
+            print('Running temporal segmentation, maybe this takes a while')
+            files_dict = {}
+            for modelname in best_models_sorted:
+
+                model = load_UnetModels_directlyANDI(modelname, device=device, dim=dim)
+
+                tmp_dict = make_preds(model, X_to_eval, y_to_eval, min_max_len=min_max_len,
+                                    X_padtoken=X_padtoken, y_padtoken=y_padtoken,
+                                    batch_size=batch_size, device=device)
+                files_dict[modelname] = tmp_dict
+
+            if len(list(files_dict.keys()))>1:
+                files_dict['ensemble_score'] = ensemble_scoring(files_dict[list(files_dict.keys())[0]]['masked_score'], 
+                                                                files_dict[list(files_dict.keys())[1]]['masked_score'], 
+                                                                files_dict[list(files_dict.keys())[2]]['masked_score'])
+                ensemble_score = files_dict['ensemble_score']
+                ensemble_pred = [np.argmax(files_dict['ensemble_score'][i], axis=0) for i in range(len(files_dict['ensemble_score']))]
+            else:
+                ensemble_score = files_dict[list(files_dict.keys())[0]]['masked_score']
+                ensemble_pred = [np.argmax(files_dict[list(files_dict.keys())[0]]['masked_score'][i], axis=0) for i in range(len(files_dict[list(files_dict.keys())[0]]['masked_score']))]
+            pickle.dump(ensemble_score, open(dir_name+savename_score, 'wb'))
+            pickle.dump(ensemble_pred, open(dir_name+savename_pred, 'wb'))
+        else:
+            ensemble_score = pickle.load(open(dir_name+savename_score, 'rb'))
+            ensemble_pred = pickle.load(open(dir_name+savename_pred, 'rb'))
+        
+        ensemble_pred = np.array(ensemble_pred, dtype=object)
         return ensemble_score, ensemble_pred
 
 

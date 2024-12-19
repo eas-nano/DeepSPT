@@ -1,0 +1,29 @@
+name: DeepSPT
+channels:
+  - defaults
+  - conda-forge  # Add this for more package options
+dependencies:
+  - python=3.8
+  - h5py
+  - imbalanced-learn
+  - joblib
+  - matplotlib
+  - mlflow
+  - numpy  # Removing the version number
+  - pandas
+  - plotly
+  - scipy
+  - scikit-learn
+  - seaborn
+  - tqdm
+  - pip
+  - pip:
+    - fbm
+    - torch==1.13
+    - torch-geometric==2.2
+    - torchaudio==0.13
+    - torchvision==0.14
+    - similaritymeasures==0.7.0  # Move to pip
+    - pomegranate==0.14.9  # Move to pip
+# followed by the manual install of probfit and iminuit
+# as described in DeepSPT's README

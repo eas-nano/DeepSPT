@@ -13,12 +13,12 @@ DeepSPT's installation guide utilize conda environment setup, therefore either m
  - Anaconda install guide: [here](https://www.anaconda.com/download)
  - Mini conda install guide: [here](https://docs.conda.io/en/latest/miniconda.html)
 
-DeepSPT is most easily setup in a new conda environment with dependecies, versions, and channels found in environment_droplet.yml or DeepSPT_simple.yml for a simple version of the environemnt file - Open Terminal / Commando prompt at wished location of DeepSPT and run the bash commands below, which creates the environemnt, downloades and installs packages, typically in less than 5 minutes. The code has been tested both on MacOS and Linux operating systems.
+DeepSPT is most easily setup in a new conda environment with dependecies, versions, and channels found in environment_droplet.yml - Open Terminal / Commando prompt at wished location of DeepSPT and run the bash commands below, which creates the environemnt, downloades and installs packages, typically in less than 5 minutes. The code has been tested both on MacOS and Linux operating systems.
 
 ```bash
 git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
 cd DeepSPT
-conda env create -f environment_droplet.yml 
+conda env create -f environment_droplet.yml
 conda activate DeepSPT
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
@@ -34,20 +34,7 @@ pip install pomegranate==0.14.8
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
 
-Note Windows 11 users may need to relax tensorflow-io-gcs-filesystem to require no version
-
-As third option (Thanks to Konstantinos Tsolakidis for contributing approach):
-Especially if running this on an Apple Macbook - M1/M2/M3 processor:
-
-git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
-cd DeepSPT
-
-conda env create -f DeepSPT_simple.yml 
-conda activate DeepSPT
-pip install probfit==1.2.0
-pip install iminuit==2.11.0
-
-As fourth option (Thanks to Konstantinos Tsolakidis for contributing approach):
+As third option (A big thanks to Konstantinos Tsolakidis for contributing approach):
 Especially if running this on an Apple Macbook - M1/M2/M3 processor:
 
 git clone git@github.com:JKaestelHansen/DeepSPT.git OR git clone https://github.com/JKaestelHansen/DeepSPT (potentially substitute JKaestelHansen with hatzakislab
@@ -73,8 +60,6 @@ pip install pomegranate==0.14.9
 pip install probfit==1.2.0
 pip install iminuit==2.11.0
 
-Note Windows 11 users may need to relax tensorflow-io-gcs-filesystem to require no version
-
 
 ```
 DeepSPT modules and additional/helpful functions are contained in the `deepspt_src` folder.
@@ -90,10 +75,10 @@ Three test python scripts are provided:
   - `usage_example2.py` - Usage example for the three DeepSPT modules: Temporal segmentation, diffusional fingerprinting and task-specific classifier module for time-resolved classification on simulated data. This code transforms trajectories by temporal segmentation of diffusion and provide diffusional fingerprints both in a temporal manner and returns the representations in the form of NumPy arrays. Runtime depends on dataset size but runs in less than 10 minutes for typical data volumes.
 
 ### For demostration
-For demostration regarding presented data and analysis contained in the manuscript, please refer to the `_For_publication` folder where you will find the required information and scripts. To run on the same data download the data as outlined below.
+For demostration regarding presented data and analysis contained in the manuscript, please refer to the `_For_puplicaiton` folder where you will find the required information and scripts. To run on the same data download the data as outlined below.
 
 ### Data
-  - Your own: DeepSPT accepts csv files or numpy arrays of shape (number of tracks, x,y,(z)). The csv files should contain columns named ['x', 'y', 'z', 'particle', 'frame']. Where 'x','y','z' represent coordinates, 'particle' represents particle id (number) and frame represents timepoint (number). The order is not of major importance. For 2D usecases 'z' column should not be included. The numpy arrays inputed as pickle files should have the shape (number of tracks, length of track, 5 or 4) 5 (particle id, frame, x, y, z) for 3D cases and 4 (particle id, frame, x, y) for 2D cases
+  - Your own: DeepSPT accepts csv files or numpy arrays of shape (number of tracks, x,y,(z)).
   - Simulated data: simulate_diffusion.py, usage_example.py, and usage_example2.py (WIP) contains functions to simulate trajectories.
   - To access data of the publication "Deep learning assisted Single Particle Tracking for automated correlation between diffusion and function" please download from: TBA. Please extract .zip files in place of folders with the same names.
 
@@ -103,31 +88,17 @@ For demostration regarding presented data and analysis contained in the manuscri
   - deepspt_mlflow_utils: MLflow helper functions
   - deepspt_src: Source code for DeepSPT
   - environment_droplet.yml: requirements file for installation of virtual environment.
-  - environment_droplet_simple.yml: lighter version of environment_droplet.yml.
-  - DeepSPT_simple.yml: a light, easier to install version of the requirements file.
-
-  - Pickle files found in this repo contain arrays of tracks as described in Data section in the Readme. These include both pickle files of trajectories from experimental data and simulated data.
-  - Test pickle files for DeepSPT can be found under the _Data folder. The pickle (.pkl) files shape following the above mentioned (see line 81) shape and order.
-  
 
 ### Runnng on data from publication
-- Firstly, download all data as stated in the "Data availability" section in "Deep Learning Assisted Analysis of Single Particle Tracking for Automated Correlation Between Diffusion and Function". Roughly 117 GB in zipped version.
+- Firstly, download all data and code as stated in the "Data availability" section in "Deep Learning Assisted Analysis of Single Particle Tracking for Automated Correlation Between Diffusion and Function". Roughly 117 GB in zipped version.
 -  Secondly, follow the install instructions described above.
 -  Thirdly, the folder "_For_publication" contains all scripts used for the publication and running these will completely reproduce all results. Specifically, temporalsegm_eval.py contains most code for figure 2, timeresolved_uncoating_prediction.py contains most code for figure 3, and benchmark_for_fig4.py contains most code for figure 4.
-
-
-## Instructions for DeepSPT application - GUI
-In this repository you will find the "DeepSPT_GUI_manual.pdf", providing detailed insturcitons on how the applciation of DeepSPT - GUI should be used.
   
 ### Contact
 
 Jacob Kæstel-hansen, PhD fellow\
 Department of Chemistry\
 jkh@chem.ku.dk
-
-Konstantinos Tsolakidis,Software Engineer
-Department of Chemistry, Hatzakis Lab 
-kt@chem.ku.dk
 
 Nikos Hatzakis, Professor\
 Department of Chemistry\

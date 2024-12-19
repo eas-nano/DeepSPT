@@ -1,7 +1,7 @@
 # %%
 from deepspt_src import *
 
-# path to example data
+# path to example data - see usage_example1 for how to generate simulated data
 dim = 3
 path = '_Data/Simulated_diffusion_tracks/' # path to save and load
 output_name = 'tester_set'+str(dim) # name of output file - change to get new tracks if already run

@@ -123,6 +123,7 @@ if use_mlflow:
     best_models_sorted = find_models_for(datasets, methods)
 else:
     path = 'mlruns/{}'.format(modeldir)
+    assert os.path.exists(path), 'Need to download models - see Deep learning assisted analysis of single particle tracking for automated correlation between diffusion and function Kæstel-Hansen et al.'
     best_models_sorted = find_models_for_from_path(path)
     print(best_models_sorted) # ordered as found
 
@@ -173,7 +174,7 @@ FP_1 = create_temporalfingerprint(changing_diffusion_list_all[:n_changing_traces
 FP_2 = create_temporalfingerprint(changing_diffusion_list_all[n_changing_traces:], 
                                     ensemble_pred[n_changing_traces:], fp_datapath, hmm_filename, dim, dt,
                                     selected_features=selected_features)
-
+FP_2.shape
 # %%
 i = 0
 

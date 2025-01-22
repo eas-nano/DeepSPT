@@ -128,6 +128,8 @@ https://erda.ku.dk/archives/804ea1ea88f340b79ada3e57141a6d6e/published-archive.h
 
 ## Instructions for DeepSPT application - GUI
 In this repository you will find the "DeepSPT_GUI_manual.pdf", providing detailed insturcitons on how the applciation of DeepSPT - GUI should be used.
+
+Link to download GUI executables: https://erda.ku.dk/archives/a15cdc35bfd774d4255491c154f41fe5/published-archive.html
   
 ### Contact
 

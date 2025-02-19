@@ -1,4 +1,5 @@
 # %%
+import os
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
@@ -14,8 +15,8 @@ warnings.filterwarnings("ignore")
 
 class ChangePointLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, 
-                 num_layers, maxlens, 
-                 bidirectional):
+                num_layers, maxlens, 
+                bidirectional):
         super(ChangePointLSTM, self).__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -55,7 +56,7 @@ compare accuracy and frame error
 seed = globals._parse({})
 
 # device
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu' # type: ignore
 
 """Generate a simulated data """
 # variables

@@ -1,0 +1,10 @@
+__pycache__/
+__pycache__/global_config.cpython-38.pyc
+deepspt_src/__pycache__/..
+deepspt_src/__pycache__/training.cpython-38.pyc
+deepspt_src/__pycache__/temporal_segmentation.cpython-38.pyc
+__pycache__/global_config.cpython-38.pyc
+deepspt_src/__pycache__/training.cpython-38.pyc
+deepspt_src/__pycache__/Fingerprint_functions.cpython-38.pyc
+deepspt_src/__pycache__/training.cpython-38.pyc
+*pyc

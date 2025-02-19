@@ -4387,6 +4387,7 @@ def run_temporalsegmentation(best_models_sorted,
         if run_temporalsegmentation:
             print('Running temporal segmentation, maybe this takes a while')
             files_dict = {}
+            ensemble_score, ensemble_pred = None, None
             for modelname in best_models_sorted:
                 if use_mlflow:
                     model = load_UnetModels(modelname, dir=modelpath, device=device, dim=dim)
@@ -4572,3 +4573,4 @@ def get_super(x):
     super_s = "ᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾQᴿˢᵀᵁⱽᵂˣʸᶻᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖ۹ʳˢᵗᵘᵛʷˣʸᶻ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾"
     res = x.maketrans(''.join(normal), ''.join(super_s)) 
     return x.translate(res) 
+# %%
